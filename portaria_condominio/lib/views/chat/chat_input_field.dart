@@ -115,7 +115,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
             const SizedBox(width: 8),
             Container(
               decoration: BoxDecoration(
-                color: _isSending ? colorScheme.surfaceVariant : colorScheme.primary,
+                color: _isSending ? colorScheme.surfaceContainerHighest : colorScheme.primary,
                 shape: BoxShape.circle,
               ),
               child: Material(

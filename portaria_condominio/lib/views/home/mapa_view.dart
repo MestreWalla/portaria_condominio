@@ -7,6 +7,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
 import 'package:provider/provider.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import '../../services/routing_service.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
@@ -31,6 +32,7 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
   final MapController _mapController = MapController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final FocusNode _searchFocusNode = FocusNode();
 
   final LatLng _currentLocation =
       const LatLng(-22.566451, -47.401524); // Centro de Limeira
@@ -144,6 +146,91 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
     }
   }
 
+  Future<List<String>> _getSuggestions(String pattern) async {
+    if (pattern.length < 3) return [];
+
+    final patternLower = pattern.toLowerCase();
+    List<String> suggestions = [];
+
+    // Busca por nome do morador
+    suggestions.addAll(
+      _moradores
+          .where((morador) => morador.nome.toLowerCase().contains(patternLower))
+          .map((morador) => '${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}')
+    );
+
+    // Busca por endereço dos moradores
+    suggestions.addAll(
+      _moradores
+          .where((morador) =>
+              '${morador.endereco}, ${morador.numeroCasa}'.toLowerCase().contains(patternLower))
+          .map((morador) => '${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}')
+          .where((suggestion) => !suggestions.contains(suggestion)) // Evita duplicatas
+    );
+
+    try {
+      // Busca sugestões do Google Places API apenas se não houver sugestões de moradores
+      if (suggestions.isEmpty) {
+        final locations = await locationFromAddress(pattern);
+        suggestions.addAll(
+          locations.map((location) => location.toString()).toList(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar sugestões de endereço: $e');
+    }
+
+    return suggestions;
+  }
+
+  void _handleSuggestionSelected(String suggestion) {
+    _searchController.text = suggestion;
+    _searchFocusNode.unfocus();
+
+    // Verifica se é um morador ou endereço comum
+    final moradorOpt = _moradores
+        .where((m) => suggestion.startsWith('${m.nome} - '))
+        .firstOrNull;
+
+    if (moradorOpt != null) {
+      _startRouteToMorador(moradorOpt);
+    } else {
+      _searchAddress(suggestion);
+    }
+  }
+
+  Future<void> _startRouteToMorador(Morador morador) async {
+    try {
+      final address = '${morador.endereco}, ${morador.numeroCasa}';
+      final locations = await locationFromAddress(address);
+      
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        setState(() {
+          _destination = LatLng(location.latitude, location.longitude);
+          _destinationMorador = morador;
+        });
+
+        if (_userLocation != null) {
+          final routingService = RoutingService();
+          final route = await routingService.getRoute(_userLocation!, _destination!);
+
+          setState(() {
+            _routePoints = route;
+          });
+
+          final bounds = LatLngBounds.fromPoints([_userLocation!, _destination!]);
+          _mapController.move(bounds.center, 15);
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao iniciar rota: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final configController = context.watch<ConfiguracoesController>();
@@ -180,29 +267,92 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: localizations.translate('search_address'),
-              prefixIcon: Icon(
-                Icons.search,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  Icons.my_location,
-                  color: Theme.of(context).colorScheme.secondary,
+          child: TypeAheadField(
+            textFieldConfiguration: TextFieldConfiguration(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              decoration: InputDecoration(
+                hintText: localizations.translate('search_address'),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                onPressed: _getUserLocation,
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          _searchFocusNode.unfocus();
+                        },
+                      ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.my_location,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                      onPressed: _getUserLocation,
+                    ),
+                  ],
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
             ),
-            onSubmitted: _searchAddress,
+            suggestionsCallback: _getSuggestions,
+            suggestionsBoxDecoration: SuggestionsBoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              elevation: 8,
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            transitionBuilder: (context, suggestionsBox, controller) {
+              return AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                child: suggestionsBox,
+              );
+            },
+            itemBuilder: (context, String suggestion) {
+              final isMoradorSuggestion = suggestion.contains(' - ');
+              final isNameMatch = isMoradorSuggestion && 
+                  _moradores.any((m) => suggestion.toLowerCase().startsWith(m.nome.toLowerCase()));
+
+              return ListTile(
+                leading: Icon(
+                  isNameMatch ? Icons.person : (isMoradorSuggestion ? Icons.home : Icons.location_on_outlined),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  suggestion,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: isMoradorSuggestion ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                subtitle: isMoradorSuggestion
+                    ? Text(
+                        isNameMatch ? 'Morador (nome)' : 'Morador (endereço)',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      )
+                    : null,
+              );
+            },
+            onSuggestionSelected: _handleSuggestionSelected,
+            hideOnEmpty: true,
+            hideOnLoading: false,
+            keepSuggestionsOnLoading: true,
+            animationDuration: const Duration(milliseconds: 300),
+            minCharsForSuggestions: 3,
           ),
         ),
       ),
@@ -263,7 +413,7 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                           color: Theme.of(context).colorScheme.secondary,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.background,
+                            color: Theme.of(context).colorScheme.surface,
                             width: 2,
                           ),
                         ),
@@ -395,7 +545,7 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                       builder: (context, child) {
                         return SlideTransition(
                           position: Tween<Offset>(
-                            begin: Offset(0, 1),
+                            begin: const Offset(0, 1),
                             end: Offset.zero,
                           ).animate(
                             CurvedAnimation(
@@ -535,42 +685,11 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
     }
   }
 
-  Future<void> _startRouteToMorador(Morador morador) async {
-    try {
-      final address = '${morador.endereco}, ${morador.numeroCasa}';
-      final locations = await locationFromAddress(address);
-      
-      if (locations.isNotEmpty) {
-        final location = locations.first;
-        setState(() {
-          _destination = LatLng(location.latitude, location.longitude);
-          _destinationMorador = morador;
-        });
-
-        if (_userLocation != null) {
-          final routingService = RoutingService();
-          final route = await routingService.getRoute(_userLocation!, _destination!);
-
-          setState(() {
-            _routePoints = route;
-          });
-
-          final bounds = LatLngBounds.fromPoints([_userLocation!, _destination!]);
-          _mapController.move(bounds.center, 15);
-        }
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao iniciar rota: $e')),
-      );
-    }
-  }
-
   @override
   void dispose() {
     _animationController.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 }

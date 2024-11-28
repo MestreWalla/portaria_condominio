@@ -103,7 +103,7 @@ class _ChatViewState extends State<ChatView> {
             child: CircleAvatar(
               radius: 20,
               backgroundImage: MemoryImage(decoded),
-              backgroundColor: colorScheme.surfaceVariant,
+              backgroundColor: colorScheme.surfaceContainerHighest,
               onBackgroundImageError: (exception, stackTrace) {
                 debugPrint('Erro ao carregar imagem: $exception');
                 debugPrint('Stack trace: $stackTrace');
