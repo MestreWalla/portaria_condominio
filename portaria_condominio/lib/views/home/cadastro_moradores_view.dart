@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:portaria_condominio/controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
+import '../../controllers/morador_controller.dart';
 import '../photo_registration/photo_registration_screen.dart';
 
 class CadastroMoradoresView extends StatefulWidget {

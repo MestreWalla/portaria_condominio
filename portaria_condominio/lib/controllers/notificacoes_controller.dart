@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:portaria_condominio/models/notificacao_model.dart';
-import 'package:portaria_condominio/services/notification_service.dart';
+import '../models/notificacao_model.dart';
+import '../services/notification_service.dart';
 
 class NotificationController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

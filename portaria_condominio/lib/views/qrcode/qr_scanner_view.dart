@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:portaria_condominio/controllers/visita_controller.dart';
+import '../../controllers/visita_controller.dart';
 import 'package:provider/provider.dart';
 import '../../localizations/app_localizations.dart';
 

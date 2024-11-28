@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:portaria_condominio/controllers/morador_controller.dart';
+import '../../controllers/morador_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
-import '../../views/chat/chat_view.dart';
+import '../chat/chat_view.dart';
 import '../photo_registration/photo_registration_screen.dart';
 import 'mapa_view.dart';
 
@@ -669,7 +669,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                             builder: (context) => PhotoRegistrationScreen(
                                               userType: 'resident',
                                               userId: morador!.id,
-                                              returnPhotoData: true, // Queremos os dados da foto para atualizar o estado
+                                              returnPhotoData: true,
                                             ),
                                           ),
                                         );
@@ -681,39 +681,48 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
 
                                             // Atualiza o objeto morador com a nova foto
                                             final moradorAtualizado = Morador(
-                                              id: morador.id,
-                                              nome: morador.nome,
-                                              cpf: morador.cpf,
-                                              telefone: morador.telefone,
-                                              email: morador.email,
-                                              senha: morador.senha,
-                                              endereco: morador.endereco,
-                                              numeroCasa: morador.numeroCasa,
-                                              role: morador.role,
+                                              id: morador!.id,
+                                              nome: morador!.nome,
+                                              cpf: morador!.cpf,
+                                              telefone: morador!.telefone,
+                                              email: morador!.email,
+                                              senha: morador!.senha,
+                                              endereco: morador!.endereco,
+                                              numeroCasa: morador!.numeroCasa,
+                                              role: morador!.role,
                                               photoURL: photoData,
                                             );
 
                                             // Atualiza o morador no banco com todos os dados
                                             await _controller.atualizarMorador(moradorAtualizado);
 
-                                            // Atualiza a lista de moradores
-                                            setState(() {
-                                              _futureMoradores = _controller.buscarTodosMoradores();
-                                            });
+                                            // Atualiza o estado local
+                                            if (mounted) {
+                                              // Atualiza o morador local com a nova foto
+                                              morador = moradorAtualizado;
+                                              setState(() {}); // Força atualização da UI
 
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Foto atualizada com sucesso!'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
+                                              // Atualiza a lista de moradores
+                                              this.setState(() {
+                                                _futureMoradores = _controller.buscarTodosMoradores();
+                                              });
+
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Foto atualizada com sucesso!'),
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            }
                                           } catch (e) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Erro ao atualizar foto: $e'),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Erro ao atualizar foto: $e'),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
                                           }
                                         }
                                       },

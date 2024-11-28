@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../localizations/app_localizations.dart';
+import '../photo_registration/photo_registration_screen.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -21,6 +24,7 @@ class _ProfileViewState extends State<ProfileView> {
   bool _isLoading = true;
   bool _isEditing = false;
   String _role = '';
+  String? _photoURL;
 
   @override
   void initState() {
@@ -67,6 +71,7 @@ class _ProfileViewState extends State<ProfileView> {
               _enderecoController.text = userData.data()?['endereco'] ?? '';
               _numeroCasaController.text = userData.data()?['numeroCasa'] ?? '';
               _role = userData.data()?['role'] ?? 'morador';
+              _photoURL = userData.data()?['photoURL'];
               _isLoading = false;
             });
           }
@@ -172,6 +177,156 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
+  Widget _buildAvatar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (_photoURL != null && _photoURL!.isNotEmpty) {
+      try {
+        String base64String;
+        if (_photoURL!.startsWith('data:image')) {
+          base64String = _photoURL!.split(',')[1];
+        } else {
+          base64String = _photoURL!;
+        }
+
+        return Hero(
+          tag: 'profile_avatar',
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: MemoryImage(base64Decode(base64String)),
+                backgroundColor: colorScheme.primaryContainer,
+                onBackgroundImageError: (exception, stackTrace) {
+                  debugPrint('Erro ao carregar imagem: $exception');
+                  return;
+                },
+              ),
+              if (_isEditing)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.camera_alt,
+                        color: colorScheme.onPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => _updatePhoto(context),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      } catch (e) {
+        debugPrint('Erro ao decodificar base64: $e');
+        return _buildDefaultAvatar(context);
+      }
+    }
+    return _buildDefaultAvatar(context);
+  }
+
+  Widget _buildDefaultAvatar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Hero(
+      tag: 'profile_avatar',
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Text(
+              _nameController.text.isNotEmpty
+                  ? _nameController.text[0].toUpperCase()
+                  : '?',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          if (_isEditing)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.camera_alt,
+                    color: colorScheme.onPrimary,
+                    size: 20,
+                  ),
+                  onPressed: () => _updatePhoto(context),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updatePhoto(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final photoData = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotoRegistrationScreen(
+          userType: _role == 'porteiro' ? 'doorman' : 'resident',
+          userId: user.uid,
+          returnPhotoData: true,
+        ),
+      ),
+    );
+
+    if (photoData != null && mounted) {
+      try {
+        final collection = _role == 'porteiro' ? 'portarias' : 'moradores';
+        await FirebaseFirestore.instance
+            .collection(collection)
+            .doc(user.uid)
+            .update({'photoURL': photoData});
+
+        setState(() => _photoURL = photoData);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('photo_updated'),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).translate('error_updating_photo'),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -228,21 +383,7 @@ class _ProfileViewState extends State<ProfileView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Hero(
-                  tag: 'profile_avatar',
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Text(
-                      _nameController.text.isNotEmpty
-                          ? _nameController.text[0].toUpperCase()
-                          : '?',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                ),
+                child: _buildAvatar(context),
               ),
               const SizedBox(height: 8),
               Center(
