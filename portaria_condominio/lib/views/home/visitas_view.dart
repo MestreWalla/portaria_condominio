@@ -13,7 +13,8 @@ class VisitasView extends StatefulWidget {
   State<VisitasView> createState() => _VisitasViewState();
 }
 
-class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin {
+class _VisitasViewState extends State<VisitasView>
+    with TickerProviderStateMixin {
   final VisitaController _controller = VisitaController();
   final MoradorController _moradorController = MoradorController();
   int? expandedIndex;
@@ -64,17 +65,20 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
     return _animationControllers[index]!;
   }
 
-  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectTime(
+      BuildContext context, TextEditingController controller) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (picked != null) {
-      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      controller.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     }
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -82,7 +86,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
-      controller.text = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      controller.text =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
     }
   }
 
@@ -147,7 +152,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                 animation: _getAnimationController(index),
                 builder: (context, child) {
                   final controller = _getAnimationController(index);
-                  final elevationAnimation = Tween<double>(begin: 1, end: 8).animate(
+                  final elevationAnimation =
+                      Tween<double>(begin: 1, end: 8).animate(
                     CurvedAnimation(
                       parent: controller,
                       curve: Curves.easeInOut,
@@ -185,20 +191,25 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                           : colorScheme.error,
                                       child: Text(
                                         visita.nome[0].toUpperCase(),
-                                        style: TextStyle(color: colorScheme.onPrimary),
+                                        style: TextStyle(
+                                            color: colorScheme.onPrimary),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           visita.nome,
-                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                         const SizedBox(height: 4),
                                         Row(
@@ -215,25 +226,44 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                             const SizedBox(width: 4),
                                             Text(
                                               visita.status == 'agendado'
-                                                  ? localizations.translate('scheduled')
+                                                  ? localizations
+                                                      .translate('scheduled')
                                                   : visita.status == 'liberado'
-                                                  ? localizations.translate('entry_allowed')
-                                                  : visita.status == 'cancelado'
-                                                  ? localizations.translate('cancelled')
-                                                  : visita.status == 'realizado'
-                                                  ? localizations.translate('realized')
-                                                  : localizations.translate('unknown_status'),
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: visita.status == 'agendado'
-                                                    ? Colors.orange
-                                                    : visita.status == 'liberado'
-                                                    ? Colors.green
-                                                    : visita.status == 'cancelado'
-                                                    ? Colors.red
-                                                    : visita.status == 'realizado'
-                                                    ? Colors.blue
-                                                    : Colors.grey,
-                                              ),
+                                                      ? localizations.translate(
+                                                          'entry_allowed')
+                                                      : visita.status ==
+                                                              'cancelado'
+                                                          ? localizations
+                                                              .translate(
+                                                                  'cancelled')
+                                                          : visita.status ==
+                                                                  'realizado'
+                                                              ? localizations
+                                                                  .translate(
+                                                                      'realized')
+                                                              : localizations
+                                                                  .translate(
+                                                                      'unknown_status'),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                    color: visita.status ==
+                                                            'agendado'
+                                                        ? Colors.orange
+                                                        : visita.status ==
+                                                                'liberado'
+                                                            ? Colors.green
+                                                            : visita.status ==
+                                                                    'cancelado'
+                                                                ? Colors.red
+                                                                : visita.status ==
+                                                                        'realizado'
+                                                                    ? Colors
+                                                                        .blue
+                                                                    : Colors
+                                                                        .grey,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -241,7 +271,9 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                     ),
                                   ),
                                   Icon(
-                                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                                    isExpanded
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
                                     color: colorScheme.primary,
                                   ),
                                 ],
@@ -256,17 +288,41 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfoRow(localizations.translate('name'), visita.nome, colorScheme),
+                                _buildInfoRow(localizations.translate('name'),
+                                    visita.nome, colorScheme),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(localizations.translate('expected_date'), visita.dataPrevista, colorScheme),
+                                _buildInfoRow(
+                                    localizations.translate('start_date'),
+                                    visita.startDate,
+                                    colorScheme),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(localizations.translate('expected_time'), visita.horaPrevista, colorScheme),
+                                _buildInfoRow(
+                                    localizations.translate('start_time'),
+                                    visita.startTime,
+                                    colorScheme),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(localizations.translate('house_number'), visita.apartamento, colorScheme),
+                                _buildInfoRow(
+                                    localizations.translate('end_date'),
+                                    visita.endDate,
+                                    colorScheme),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(localizations.translate('observations'), visita.observacoes, colorScheme),
+                                _buildInfoRow(
+                                    localizations.translate('end_time'),
+                                    visita.endTime,
+                                    colorScheme),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                    localizations.translate('house_number'),
+                                    visita.apartamento,
+                                    colorScheme),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(
+                                    localizations.translate('observations'),
+                                    visita.observacoes,
+                                    colorScheme),
                                 const SizedBox(height: 16),
-                                _buildActionButtons(visita, localizations, colorScheme),
+                                _buildActionButtons(
+                                    visita, localizations, colorScheme),
                               ],
                             ),
                           ),
@@ -307,7 +363,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildActionButtons(Visita visita, AppLocalizations localizations, ColorScheme colorScheme) {
+  Widget _buildActionButtons(
+      Visita visita, AppLocalizations localizations, ColorScheme colorScheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -331,7 +388,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(localizations.translate('error_allowing_entry')),
+                      content:
+                          Text(localizations.translate('error_allowing_entry')),
                       backgroundColor: colorScheme.error,
                     ),
                   );
@@ -358,7 +416,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(localizations.translate('entry_revoked')),
+                          content:
+                              Text(localizations.translate('entry_revoked')),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -367,7 +426,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(localizations.translate('error_revoking_entry')),
+                          content: Text(
+                              localizations.translate('error_revoking_entry')),
                           backgroundColor: colorScheme.error,
                         ),
                       );
@@ -418,11 +478,20 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
   }
 
   void _mostrarDialogEdicao(Visita visita) {
-    final TextEditingController nomeController = TextEditingController(text: visita.nome);
-    final TextEditingController cpfController = TextEditingController(text: visita.cpf);
-    final TextEditingController dataController = TextEditingController(text: visita.dataPrevista);
-    final TextEditingController horaController = TextEditingController(text: visita.horaPrevista);
-    final TextEditingController observacoesController = TextEditingController(text: visita.observacoes);
+    final TextEditingController nomeController =
+        TextEditingController(text: visita.nome);
+    final TextEditingController cpfController =
+        TextEditingController(text: visita.cpf);
+    final TextEditingController startDateController =
+        TextEditingController(text: visita.startDate);
+    final TextEditingController startTimeController =
+        TextEditingController(text: visita.startTime);
+    final TextEditingController endDateController =
+        TextEditingController(text: visita.endDate);
+    final TextEditingController endTimeController =
+        TextEditingController(text: visita.endTime);
+    final TextEditingController observacoesController =
+        TextEditingController(text: visita.observacoes);
 
     showDialog(
       context: context,
@@ -441,9 +510,9 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                   Text(
                     localizations.translate('edit_visit'),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
@@ -480,17 +549,19 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                     children: [
                       Expanded(
                         child: TextFormField(
-                          controller: dataController,
+                          controller: startDateController,
                           readOnly: true,
-                          onTap: () => _selectDate(context, dataController),
+                          onTap: () =>
+                              _selectDate(context, startDateController),
                           decoration: InputDecoration(
-                            labelText: localizations.translate('expected_date'),
+                            labelText: localizations.translate('start_date'),
                             prefixIcon: const Icon(Icons.calendar_today),
                             border: const OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return localizations.translate('date_required');
+                              return localizations
+                                  .translate('start_date_required');
                             }
                             return null;
                           },
@@ -499,17 +570,63 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                       const SizedBox(width: 16),
                       Expanded(
                         child: TextFormField(
-                          controller: horaController,
+                          controller: startTimeController,
                           readOnly: true,
-                          onTap: () => _selectTime(context, horaController),
+                          onTap: () =>
+                              _selectTime(context, startTimeController),
                           decoration: InputDecoration(
-                            labelText: localizations.translate('expected_time'),
+                            labelText: localizations.translate('start_time'),
                             prefixIcon: const Icon(Icons.access_time),
                             border: const OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return localizations.translate('time_required');
+                              return localizations
+                                  .translate('start_time_required');
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: endDateController,
+                          readOnly: true,
+                          onTap: () => _selectDate(context, endDateController),
+                          decoration: InputDecoration(
+                            labelText: localizations.translate('end_date'),
+                            prefixIcon: const Icon(Icons.calendar_today),
+                            border: const OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return localizations
+                                  .translate('end_date_required');
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: endTimeController,
+                          readOnly: true,
+                          onTap: () => _selectTime(context, endTimeController),
+                          decoration: InputDecoration(
+                            labelText: localizations.translate('end_time'),
+                            prefixIcon: const Icon(Icons.access_time),
+                            border: const OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return localizations
+                                  .translate('end_time_required');
                             }
                             return null;
                           },
@@ -528,7 +645,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                     items: _moradores.map((morador) {
                       return DropdownMenuItem<String>(
                         value: morador.id,
-                        child: Text('${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}'),
+                        child: Text(
+                            '${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}'),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -573,9 +691,12 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                 nome: nomeController.text,
                                 cpf: cpfController.text,
                                 liberacaoEntrada: visita.liberacaoEntrada,
-                                dataPrevista: dataController.text,
-                                horaPrevista: horaController.text,
-                                apartamento: '${_moradores.firstWhere((m) => m.id == _selectedMoradorId).endereco}, ${_moradores.firstWhere((m) => m.id == _selectedMoradorId).numeroCasa}',
+                                startDate: startDateController.text,
+                                startTime: startTimeController.text,
+                                endDate: endDateController.text,
+                                endTime: endTimeController.text,
+                                apartamento:
+                                    '${_moradores.firstWhere((m) => m.id == _selectedMoradorId).endereco}, ${_moradores.firstWhere((m) => m.id == _selectedMoradorId).numeroCasa}',
                                 observacoes: observacoesController.text,
                                 status: visita.status,
                                 role: visita.role,
@@ -584,11 +705,13 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                               if (mounted) {
                                 Navigator.of(context).pop();
                                 setState(() {
-                                  _futureVisitas = _controller.buscarTodasVisitas();
+                                  _futureVisitas =
+                                      _controller.buscarTodasVisitas();
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(localizations.translate('visit_updated')),
+                                    content: Text(localizations
+                                        .translate('visit_updated')),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -597,7 +720,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(localizations.translate('error_updating_visit')),
+                                    content: Text(localizations
+                                        .translate('error_updating_visit')),
                                     backgroundColor: colorScheme.error,
                                   ),
                                 );
@@ -622,8 +746,10 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
   void _mostrarDialogCadastro() {
     final TextEditingController nomeController = TextEditingController();
     final TextEditingController cpfController = TextEditingController();
-    final TextEditingController dataController = TextEditingController();
-    final TextEditingController horaController = TextEditingController();
+    final TextEditingController startDateController = TextEditingController();
+    final TextEditingController startTimeController = TextEditingController();
+    final TextEditingController endDateController = TextEditingController();
+    final TextEditingController endTimeController = TextEditingController();
     final TextEditingController observacoesController = TextEditingController();
 
     showDialog(
@@ -643,10 +769,11 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                   children: [
                     Text(
                       localizations.translate('add_visit'),
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
@@ -683,17 +810,19 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                       children: [
                         Expanded(
                           child: TextFormField(
-                            controller: dataController,
+                            controller: startDateController,
                             readOnly: true,
-                            onTap: () => _selectDate(context, dataController),
+                            onTap: () =>
+                                _selectDate(context, startDateController),
                             decoration: InputDecoration(
-                              labelText: localizations.translate('expected_date'),
+                              labelText: localizations.translate('start_date'),
                               prefixIcon: const Icon(Icons.calendar_today),
                               border: const OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return localizations.translate('date_required');
+                                return localizations
+                                    .translate('start_date_required');
                               }
                               return null;
                             },
@@ -702,17 +831,65 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                         const SizedBox(width: 16),
                         Expanded(
                           child: TextFormField(
-                            controller: horaController,
+                            controller: startTimeController,
                             readOnly: true,
-                            onTap: () => _selectTime(context, horaController),
+                            onTap: () =>
+                                _selectTime(context, startTimeController),
                             decoration: InputDecoration(
-                              labelText: localizations.translate('expected_time'),
+                              labelText: localizations.translate('start_time'),
                               prefixIcon: const Icon(Icons.access_time),
                               border: const OutlineInputBorder(),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return localizations.translate('time_required');
+                                return localizations
+                                    .translate('start_time_required');
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: endDateController,
+                            readOnly: true,
+                            onTap: () =>
+                                _selectDate(context, endDateController),
+                            decoration: InputDecoration(
+                              labelText: localizations.translate('end_date'),
+                              prefixIcon: const Icon(Icons.calendar_today),
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return localizations
+                                    .translate('end_date_required');
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: endTimeController,
+                            readOnly: true,
+                            onTap: () =>
+                                _selectTime(context, endTimeController),
+                            decoration: InputDecoration(
+                              labelText: localizations.translate('end_time'),
+                              prefixIcon: const Icon(Icons.access_time),
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return localizations
+                                    .translate('end_time_required');
                               }
                               return null;
                             },
@@ -731,7 +908,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                       items: _moradores.map((morador) {
                         return DropdownMenuItem<String>(
                           value: morador.id,
-                          child: Text('${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}'),
+                          child: Text(
+                              '${morador.nome} - ${morador.endereco}, ${morador.numeroCasa}'),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -772,13 +950,18 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                             if (_formKey.currentState!.validate()) {
                               try {
                                 final novaVisita = Visita(
-                                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                  id: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
                                   nome: nomeController.text,
                                   cpf: cpfController.text,
                                   liberacaoEntrada: false,
-                                  dataPrevista: dataController.text,
-                                  horaPrevista: horaController.text,
-                                  apartamento: '${_moradores.firstWhere((m) => m.id == _selectedMoradorId).endereco}, ${_moradores.firstWhere((m) => m.id == _selectedMoradorId).numeroCasa}',
+                                  startDate: startDateController.text,
+                                  startTime: startTimeController.text,
+                                  endDate: endDateController.text,
+                                  endTime: endTimeController.text,
+                                  apartamento:
+                                      '${_moradores.firstWhere((m) => m.id == _selectedMoradorId).endereco}, ${_moradores.firstWhere((m) => m.id == _selectedMoradorId).numeroCasa}',
                                   observacoes: observacoesController.text,
                                   status: 'agendado',
                                   role: 'visitante',
@@ -787,11 +970,13 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                 if (mounted) {
                                   Navigator.of(context).pop();
                                   setState(() {
-                                    _futureVisitas = _controller.buscarTodasVisitas();
+                                    _futureVisitas =
+                                        _controller.buscarTodasVisitas();
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(localizations.translate('visit_added')),
+                                      content: Text(localizations
+                                          .translate('visit_added')),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
@@ -800,7 +985,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(localizations.translate('error_adding_visit')),
+                                      content: Text(localizations
+                                          .translate('error_adding_visit')),
                                       backgroundColor: colorScheme.error,
                                     ),
                                   );
@@ -829,7 +1015,8 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
       builder: (context) => AlertDialog(
         title: Text(localizations.translate('confirm_deletion')),
         content: Text(
-          localizations.translate('confirm_visit_deletion')
+          localizations
+              .translate('confirm_visit_deletion')
               .replaceAll('{name}', visita.nome),
         ),
         actions: [

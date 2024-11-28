@@ -8,7 +8,7 @@ import 'dart:convert';
 
 class QrCodeView extends StatelessWidget {
   final Visita visita;
-  
+
   const QrCodeView({super.key, required this.visita});
 
   String _gerarCodigoAcesso() {
@@ -17,9 +17,12 @@ class QrCodeView extends StatelessWidget {
       'id': visita.id,
       'nome': visita.nome,
       'cpf': visita.cpf,
-      'casa': visita.apartamento, // mantendo o nome do campo por compatibilidade
-      'dataPrevista': visita.dataPrevista,
-      'horaPrevista': visita.horaPrevista,
+      'casa':
+          visita.apartamento, // mantendo o nome do campo por compatibilidade
+      'startDate': visita.startDate,
+      'startTime': visita.startTime,
+      'endDate': visita.endDate,
+      'endTime': visita.endTime,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     };
 
@@ -31,7 +34,7 @@ class QrCodeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final codigoAcesso = _gerarCodigoAcesso();
     final localizations = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('qr_code_title')),
@@ -70,12 +73,22 @@ class QrCodeView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${localizations.translate('expected_date')}: ${visita.dataPrevista}',
+                    '${localizations.translate('expected_date')}: ${visita.startDate}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${localizations.translate('expected_time')}: ${visita.horaPrevista}',
+                    '${localizations.translate('expected_time')}: ${visita.startTime}',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${localizations.translate('end_date')}: ${visita.endDate}',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${localizations.translate('end_time')}: ${visita.endTime}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],

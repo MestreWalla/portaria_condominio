@@ -113,6 +113,10 @@ class AppLocalizationsPt {
     // Visits
     'add_visit': 'Adicionar Visita',
     'edit_visit': 'Editar Visita',
+    'start_date': 'Data de Início',
+    'end_date': 'Data de Término',
+    'start_time': 'Hora de Início',
+    'end_time': 'Hora de Término',
     'expected_date': 'Data Prevista',
     'date_required': 'Informe a data prevista',
     'expected_time': 'Hora Prevista',

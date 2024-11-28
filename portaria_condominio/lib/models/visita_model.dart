@@ -6,8 +6,10 @@ class Visita {
   final String cpf;
   final bool liberacaoEntrada;
   final String role;
-  final String dataPrevista;
-  final String horaPrevista;
+  final String startDate;
+  final String startTime;
+  final String endDate;
+  final String endTime;
   final String apartamento;
   final String observacoes;
   final String status;
@@ -18,8 +20,10 @@ class Visita {
     required this.cpf,
     this.liberacaoEntrada = false,
     this.role = 'visitante',
-    required this.dataPrevista,
-    required this.horaPrevista,
+    required this.startDate,
+    required this.startTime,
+    required this.endDate,
+    required this.endTime,
     required this.apartamento,
     this.observacoes = '',
     this.status = 'agendado',
@@ -33,8 +37,10 @@ class Visita {
       cpf: data['cpf'] ?? '',
       liberacaoEntrada: data['liberacaoEntrada'] ?? false,
       role: data['role'] ?? 'visitante',
-      dataPrevista: data['dataPrevista'] ?? '',
-      horaPrevista: data['horaPrevista'] ?? '',
+      startDate: data['startDate'] ?? '',
+      startTime: data['startTime'] ?? '',
+      endDate: data['endDate'] ?? '',
+      endTime: data['endTime'] ?? '',
       apartamento: data['apartamento'] ?? '',
       observacoes: data['observacoes'] ?? '',
       status: data['status'] ?? 'agendado',
@@ -47,8 +53,10 @@ class Visita {
       'cpf': cpf,
       'liberacaoEntrada': liberacaoEntrada,
       'role': role,
-      'dataPrevista': dataPrevista,
-      'horaPrevista': horaPrevista,
+      'startDate': startDate,
+      'startTime': startTime,
+      'endDate': endDate,
+      'endTime': endTime,
       'apartamento': apartamento,
       'observacoes': observacoes,
       'status': status,

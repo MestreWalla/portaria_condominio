@@ -123,7 +123,7 @@ class _ProfileViewState extends State<ProfileView> {
               .collection('moradores')
               .doc(user.uid)
               .get();
-          
+
           final collection = userDoc.exists ? 'moradores' : 'portarias';
 
           await FirebaseFirestore.instance
@@ -154,7 +154,8 @@ class _ProfileViewState extends State<ProfileView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                AppLocalizations.of(context).translate('error_updating_profile'),
+                AppLocalizations.of(context)
+                    .translate('error_updating_profile'),
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -260,14 +261,17 @@ class _ProfileViewState extends State<ProfileView> {
                   labelText: AppLocalizations.of(context).translate('name'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('name_required');
+                    return AppLocalizations.of(context)
+                        .translate('name_required');
                   }
                   return null;
                 },
@@ -279,17 +283,21 @@ class _ProfileViewState extends State<ProfileView> {
                   labelText: AppLocalizations.of(context).translate('email'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.email_outlined),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('email_required');
+                    return AppLocalizations.of(context)
+                        .translate('email_required');
                   }
                   if (!value.contains('@')) {
-                    return AppLocalizations.of(context).translate('invalid_email');
+                    return AppLocalizations.of(context)
+                        .translate('invalid_email');
                   }
                   return null;
                 },
@@ -301,14 +309,17 @@ class _ProfileViewState extends State<ProfileView> {
                   labelText: AppLocalizations.of(context).translate('cpf'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.badge_outlined),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('cpf_required');
+                    return AppLocalizations.of(context)
+                        .translate('cpf_required');
                   }
                   return null;
                 },
@@ -320,14 +331,17 @@ class _ProfileViewState extends State<ProfileView> {
                   labelText: AppLocalizations.of(context).translate('phone'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.phone_outlined),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('phone_required');
+                    return AppLocalizations.of(context)
+                        .translate('phone_required');
                   }
                   return null;
                 },
@@ -339,14 +353,17 @@ class _ProfileViewState extends State<ProfileView> {
                   labelText: AppLocalizations.of(context).translate('address'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.home_outlined),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('address_required');
+                    return AppLocalizations.of(context)
+                        .translate('address_required');
                   }
                   return null;
                 },
@@ -355,17 +372,21 @@ class _ProfileViewState extends State<ProfileView> {
               TextFormField(
                 controller: _numeroCasaController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).translate('house_number'),
+                  labelText:
+                      AppLocalizations.of(context).translate('house_number'),
                   border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: _isEditing ? colorScheme.surface : colorScheme.surfaceVariant,
+                  fillColor: _isEditing
+                      ? colorScheme.surface
+                      : colorScheme.surfaceContainerHighest,
                   prefixIcon: const Icon(Icons.numbers_outlined),
                 ),
                 enabled: _isEditing,
                 style: theme.textTheme.bodyLarge,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).translate('house_number_required');
+                    return AppLocalizations.of(context)
+                        .translate('house_number_required');
                   }
                   return null;
                 },
