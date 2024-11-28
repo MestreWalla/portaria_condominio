@@ -72,10 +72,13 @@ class AppRoutes {
       final args = settings.arguments as Map<String, dynamic>;
       final receiverId = args['otherUserId'] as String;
       final receiverName = args['userName'] as String? ?? 'Usuário';
+      final photoURL = args['photoURL'] as String?;
+      debugPrint('ChatView Route - receiverId: $receiverId, name: $receiverName, photoURL: $photoURL');
       return MaterialPageRoute(
         builder: (_) => ChatView(
           receiverId: receiverId,
           receiverName: receiverName,
+          photoURL: photoURL,
         ),
       );
     }

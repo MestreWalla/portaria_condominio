@@ -1,11 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import '../../models/morador_model.dart';
+import '../../models/prestador_model.dart';
+import '../../localizations/app_localizations.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/morador_controller.dart';
 import '../../controllers/prestador_controller.dart';
-import '../../models/morador_model.dart';
-import '../../models/prestador_model.dart';
-import '../../localizations/app_localizations.dart';
 import 'chat_view.dart';
 
 class ChatListView extends StatefulWidget {
@@ -100,21 +102,79 @@ class _ChatListViewState extends State<ChatListView> {
     );
   }
 
+  Widget _buildAvatar(String? photoURL, ColorScheme colorScheme, String userName) {
+    if (photoURL != null && photoURL.isNotEmpty) {
+      try {
+        String base64String;
+        if (photoURL.startsWith('data:image')) {
+          base64String = photoURL.split(',')[1];
+        } else {
+          base64String = photoURL;
+        }
+
+        return Hero(
+          tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
+          child: CircleAvatar(
+            radius: 24,
+            backgroundImage: MemoryImage(base64Decode(base64String)),
+            backgroundColor: colorScheme.surfaceVariant,
+            onBackgroundImageError: (exception, stackTrace) {
+              debugPrint('Erro ao carregar imagem: $exception');
+              return;
+            },
+          ),
+        );
+      } catch (e) {
+        debugPrint('Erro ao decodificar base64: $e');
+        return _buildDefaultAvatar(colorScheme, userName);
+      }
+    }
+    return _buildDefaultAvatar(colorScheme, userName);
+  }
+
+  Widget _buildDefaultAvatar(ColorScheme colorScheme, String userName) {
+    return Hero(
+      tag: 'avatar_default_${DateTime.now().millisecondsSinceEpoch}',
+      child: CircleAvatar(
+        radius: 24,
+        backgroundColor: colorScheme.primary,
+        child: Text(
+          userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+          style: TextStyle(
+            color: colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<Widget> _buildChatTile(String currentUserId, String otherUserId) async {
     try {
       final colorScheme = Theme.of(context).colorScheme;
       String? userName;
+      String? photoURL;
 
       // Tenta buscar como morador
       final morador = await moradorController.buscarMoradorPorId(otherUserId);
       if (morador != null) {
         userName = morador.nome;
+        photoURL = morador.photoURL;
+        debugPrint('Morador encontrado - nome: $userName, foto: $photoURL');
       } else {
         // Se não for morador, tenta buscar como prestador
         final prestador = await prestadorController.buscarPrestadorPorId(otherUserId);
         if (prestador != null) {
           userName = prestador.nome;
+          photoURL = prestador.photoURL;
+          debugPrint('Prestador encontrado - nome: $userName, foto: $photoURL');
         }
+      }
+
+      if (photoURL != null) {
+        debugPrint('Foto encontrada para $userName: ${photoURL.substring(0, 50)}...');
+      } else {
+        debugPrint('Nenhuma foto encontrada para $userName');
       }
 
       final lastMessage = await chatController.getLastMessage(currentUserId, otherUserId);
@@ -125,16 +185,7 @@ class _ChatListViewState extends State<ChatListView> {
           final unreadCount = unreadSnapshot.data ?? 0;
 
           return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: colorScheme.primary,
-              child: Text(
-                userName?.isNotEmpty == true ? userName![0].toUpperCase() : '?',
-                style: TextStyle(
-                  color: colorScheme.onPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            leading: _buildAvatar(photoURL, colorScheme, userName ?? ''),
             title: Text(userName ?? 'Usuário'),
             subtitle: Text(lastMessage ?? 'Sem mensagens'),
             trailing: unreadCount > 0 ? Container(
@@ -159,6 +210,7 @@ class _ChatListViewState extends State<ChatListView> {
                 arguments: {
                   'otherUserId': otherUserId,
                   'userName': userName,
+                  'photoURL': photoURL,
                 },
               );
             },

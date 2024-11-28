@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'controllers/configuracoes_controller.dart';
 import 'localizations/app_localizations.dart';
 import 'routes/app_routes.dart';
-import 'theme_provider.dart';
+import 'core/theme/theme_provider.dart';
 import 'views/splash/splash_screen.dart';
 import 'services/notification_service.dart';
-import 'utils/page_transitions.dart';
+import 'core/utils/page_transitions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

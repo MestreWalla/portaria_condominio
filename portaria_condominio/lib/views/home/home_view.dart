@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../controllers/notificacoes_controller.dart';
 import '../../localizations/app_localizations.dart';
-import '../../routes/app_routes.dart';
+import '../../../routes/app_routes.dart';
 import '../settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {

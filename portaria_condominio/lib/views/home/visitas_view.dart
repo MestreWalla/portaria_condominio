@@ -4,7 +4,7 @@ import '../../models/visita_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../../controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
-import '../../views/home/qr_code_generator_view.dart';
+import 'qr_code_generator_view.dart';
 
 class VisitasView extends StatefulWidget {
   const VisitasView({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/themes/app_theme.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../localizations/app_localizations.dart';
-import '../../themes/app_theme.dart';
-import '../../theme_provider.dart';
-import '../../routes/app_routes.dart';
+import '../../../core/theme/theme_provider.dart';
+import '../../../routes/app_routes.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});

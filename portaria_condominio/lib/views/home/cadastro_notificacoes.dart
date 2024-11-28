@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:portaria_condominio/controllers/notificacoes_controller.dart';
-import 'package:portaria_condominio/models/notificacao_model.dart';
 
+import '../../models/notificacao_model.dart';
+import '../../controllers/notificacoes_controller.dart';
 
 class NotificationCreationView extends StatefulWidget {
   const NotificationCreationView({super.key});
 
   @override
-  State<NotificationCreationView> createState() => _NotificationCreationViewState();
+  State<NotificationCreationView> createState() =>
+      _NotificationCreationViewState();
 }
 
 class _NotificationCreationViewState extends State<NotificationCreationView> {
-  final NotificationController notificationController = NotificationController();
+  final NotificationController notificationController =
+      NotificationController();
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   bool isLoading = false;

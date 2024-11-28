@@ -10,6 +10,7 @@ class Prestador {
   final String senha; // Senha usada para login no Firebase Authentication
   final bool liberacaoCadastro; // Indica se a entrada foi liberada
   final String role;
+  final String? photoURL; // Adicionado campo para foto do prestador
 
   // Construtor
   Prestador({
@@ -22,6 +23,7 @@ class Prestador {
     required this.senha,
     required this.liberacaoCadastro,
     this.role = 'prestador',
+    this.photoURL, // Adicionado ao construtor
   });
 
   // Construtor para criar um Prestador a partir de um documento Firestore
@@ -37,6 +39,7 @@ class Prestador {
       senha: data['senha'] ?? '',
       liberacaoCadastro: data['liberacaoCadastro'] ?? false,
       role: data['role'] ?? 'prestador',
+      photoURL: data['photoURL'], // Adicionado ao factory
     );
   }
 
@@ -51,6 +54,7 @@ class Prestador {
       'senha': senha,
       'liberacaoCadastro': liberacaoCadastro,
       'role': role,
+      'photoURL': photoURL, // Adicionado ao toJson
     };
   }
 }

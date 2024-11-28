@@ -68,13 +68,32 @@ class MoradorController {
   /// **READ** - Buscar um morador pelo ID (UID do Firebase Authentication)
   Future<Morador?> buscarMoradorPorId(String id) async {
     try {
+      print('Buscando morador com ID: $id');
       DocumentSnapshot<Map<String, dynamic>> doc = await _moradoresCollection
           .doc(id)
           .get() as DocumentSnapshot<Map<String, dynamic>>;
 
       if (doc.exists) {
-        return Morador.fromDocument(doc);
+        final data = doc.data()!;
+        print('Morador encontrado:');
+        print('Nome: ${data['nome']}');
+        print('Tem foto? ${data['photoURL'] != null ? 'Sim' : 'Não'}');
+        if (data['photoURL'] != null) {
+          print('Tamanho da foto: ${data['photoURL'].toString().length} caracteres');
+          print('Início da foto: ${data['photoURL'].toString().substring(0, 50)}...');
+        }
+
+        final morador = Morador.fromDocument(doc);
+        print('Morador convertido:');
+        print('Nome: ${morador.nome}');
+        print('Tem foto? ${morador.photoURL != null ? 'Sim' : 'Não'}');
+        if (morador.photoURL != null) {
+          print('Tamanho da foto no objeto: ${morador.photoURL!.length} caracteres');
+        }
+
+        return morador;
       }
+      print('Morador não encontrado com ID: $id');
       return null;
     } catch (e) {
       print('Erro ao buscar morador: $e');

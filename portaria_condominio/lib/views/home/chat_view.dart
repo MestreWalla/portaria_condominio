@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../controllers/chat_controller.dart';
 import '../../models/message_model.dart';
+import '../../controllers/chat_controller.dart';
 
 class ChatView extends StatefulWidget {
   final String currentUserId;

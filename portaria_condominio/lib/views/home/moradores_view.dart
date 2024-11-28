@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:portaria_condominio/controllers/morador_controller.dart';
+import '../../controllers/morador_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
-import '../../views/chat/chat_view.dart';
+import '../chat/chat_view.dart';
 import '../photo_registration/photo_registration_screen.dart';
 import 'mapa_view.dart';
 
