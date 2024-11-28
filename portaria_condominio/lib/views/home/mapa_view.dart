@@ -25,10 +25,12 @@ class MapaView extends StatefulWidget {
   State<MapaView> createState() => _MapaViewState();
 }
 
-class _MapaViewState extends State<MapaView> {
+class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final MoradorController _moradorController = MoradorController();
   final MapController _mapController = MapController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   final LatLng _currentLocation =
       const LatLng(-22.566451, -47.401524); // Centro de Limeira
@@ -43,6 +45,13 @@ class _MapaViewState extends State<MapaView> {
   void initState() {
     super.initState();
     _locationService = loc.Location();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
     _loadMoradores();
     _getUserLocation();
     
@@ -55,6 +64,7 @@ class _MapaViewState extends State<MapaView> {
         }
       });
     }
+    _animationController.forward();
   }
 
   Future<void> _loadMoradores() async {
@@ -155,16 +165,45 @@ class _MapaViewState extends State<MapaView> {
 
   Widget _buildSearchField(AppLocalizations localizations) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: localizations.translate('search_address'),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => _searchAddress(_searchController.text),
+      padding: const EdgeInsets.all(16.0),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          border: const OutlineInputBorder(),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: localizations.translate('search_address'),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  Icons.my_location,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                onPressed: _getUserLocation,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+            ),
+            onSubmitted: _searchAddress,
+          ),
         ),
       ),
     );
@@ -209,61 +248,7 @@ class _MapaViewState extends State<MapaView> {
                   ),
                 ),
 
-              // Marcadores dos moradores
-              ..._moradores.map((morador) {
-                return Marker(
-                  point: _currentLocation,
-                  width: 40,
-                  height: 40,
-                  child: InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text(morador.nome),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (morador.photoURL != null && morador.photoURL!.isNotEmpty)
-                                _buildAvatar(morador.photoURL!, Theme.of(context).colorScheme, morador.nome),
-                              const SizedBox(height: 8),
-                              Text('Endereço: ${morador.endereco}, ${morador.numeroCasa}'),
-                              Text('Telefone: ${morador.telefone}'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Fechar'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                _startRouteToMorador(morador);
-                              },
-                              child: const Text('Iniciar Rota'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      child: _buildAvatar(morador.photoURL, Theme.of(context).colorScheme, morador.nome),
-                    ),
-                  ),
-                );
-              }).toList(),
-
-              // Ponto de destino
+              // Ponto de destino (morador selecionado)
               if (_destination != null && _destinationMorador != null)
                 Marker(
                   point: _destination!,
@@ -336,7 +321,7 @@ class _MapaViewState extends State<MapaView> {
         return CircleAvatar(
           radius: 20,
           backgroundImage: MemoryImage(base64Decode(base64String)),
-          backgroundColor: colorScheme.surfaceVariant,
+          backgroundColor: colorScheme.surfaceContainerHighest,
           onBackgroundImageError: (exception, stackTrace) {
             debugPrint('Erro ao carregar imagem: $exception');
             return;
@@ -367,61 +352,159 @@ class _MapaViewState extends State<MapaView> {
   Widget _buildMoradorList(
       AppLocalizations localizations, ConfiguracoesController configController) {
     return Expanded(
-      child: _moradores.isEmpty
-          ? Center(child: Text(localizations.translate('no_residents_found')))
-          : ListView.builder(
-              itemCount: _moradores.length,
-              itemBuilder: (context, index) {
-                final morador = _moradores[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    leading: _buildAvatar(morador.photoURL, Theme.of(context).colorScheme, morador.nome),
-                    title: Text(
-                      morador.nome,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: _moradores.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
                       ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${morador.endereco}, ${morador.numeroCasa}'),
-                        Text(
-                          morador.telefone,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                      const SizedBox(height: 16),
+                      Text(
+                        localizations.translate('no_residents_found'),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
-                      ],
-                    ),
-                    isThreeLine: true,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.location_on,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: () => _showMoradorLocation(morador.endereco),
-                          tooltip: 'Mostrar no mapa',
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.directions,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          onPressed: () => _startRouteToMorador(morador),
-                          tooltip: 'Iniciar rota',
-                        ),
-                      ],
-                    ),
-                    onTap: () => _showMoradorLocation(morador.endereco),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: _moradores.length,
+                  itemBuilder: (context, index) {
+                    final morador = _moradores[index];
+                    return AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(0, 1),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: _animationController,
+                              curve: Interval(
+                                index * 0.1,
+                                (index * 0.1) + 0.5,
+                                curve: Curves.easeOut,
+                              ),
+                            ),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(12),
+                          leading: Hero(
+                            tag: 'avatar_${morador.id}',
+                            child: _buildAvatar(
+                              morador.photoURL,
+                              Theme.of(context).colorScheme,
+                              morador.nome,
+                            ),
+                          ),
+                          title: Text(
+                            morador.nome,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on_outlined,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      '${morador.endereco}, ${morador.numeroCasa}',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.phone_outlined,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.secondary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    morador.telefone,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.secondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.location_on,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                onPressed: () => _showMoradorLocation(morador.endereco),
+                                tooltip: 'Mostrar no mapa',
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.directions,
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                                onPressed: () => _startRouteToMorador(morador),
+                                tooltip: 'Iniciar rota',
+                              ),
+                            ],
+                          ),
+                          onTap: () => _showMoradorLocation(morador.endereco),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ),
     );
   }
 
@@ -486,6 +569,7 @@ class _MapaViewState extends State<MapaView> {
 
   @override
   void dispose() {
+    _animationController.dispose();
     _searchController.dispose();
     super.dispose();
   }
