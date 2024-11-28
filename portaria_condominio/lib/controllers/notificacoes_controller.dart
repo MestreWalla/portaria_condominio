@@ -22,6 +22,7 @@ class NotificationController {
 
       // Enviar notificação push para cada usuário
       for (var userDoc in usersSnapshot.docs) {
+        // Enviar notificação via FCM
         await _notificationService.sendNotificationToUser(
           userId: userDoc.id,
           title: notification.title,
@@ -31,6 +32,13 @@ class NotificationController {
             'type': 'new_notification',
             'timestamp': notification.timestamp.toIso8601String(),
           },
+        );
+
+        // Mostrar notificação local
+        await _notificationService.showLocalNotification(
+          title: notification.title,
+          body: notification.description,
+          payload: docRef.id,
         );
       }
     } catch (e) {

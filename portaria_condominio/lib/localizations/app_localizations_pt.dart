@@ -109,6 +109,13 @@ class AppLocalizationsPt {
     'save_changes': 'Salvar Alterações',
     'resident_updated': 'Morador atualizado com sucesso!',
     'resident_registered': 'Morador cadastrado com sucesso!',
+    'add_photo': 'Adicionar Foto',
+    'change_photo': 'Alterar Foto',
+    'complete_registration_first': 'Por favor, preencha o cadastro primeiro',
+    'add_photo_question': 'Adicionar Foto?',
+    'add_photo_prompt': 'Deseja adicionar uma foto ao cadastro agora? Isso ajudará na identificação do morador.',
+    'later': 'Depois',
+    'add_now': 'Adicionar Agora',
     
     // Visits
     'add_visit': 'Adicionar Visita',

@@ -91,6 +91,13 @@ class AppLocalizationsEn {
     'save_changes': 'Save Changes',
     'resident_updated': 'Resident updated successfully!',
     'resident_registered': 'Resident registered successfully!',
+    'add_photo': 'Add Photo',
+    'change_photo': 'Change Photo',
+    'complete_registration_first': 'Please complete the registration first',
+    'add_photo_question': 'Add Photo?',
+    'add_photo_prompt': 'Would you like to add a photo now? This will help with resident identification.',
+    'later': 'Later',
+    'add_now': 'Add Now',
     
     // Visits
     'add_visit': 'Add Visit',

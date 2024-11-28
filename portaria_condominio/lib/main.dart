@@ -24,13 +24,21 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
-  runApp(MyApp(prefs: prefs));
+  runApp(MyApp(
+    prefs: prefs,
+    notificationService: notificationService,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+  final NotificationService notificationService;
 
-  const MyApp({super.key, required this.prefs});
+  const MyApp({
+    super.key,
+    required this.prefs,
+    required this.notificationService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +50,7 @@ class MyApp extends StatelessWidget {
       child: Consumer2<ThemeProvider, ConfiguracoesController>(
         builder: (context, themeProvider, configController, child) {
           return MaterialApp(
+            navigatorKey: notificationService.navigatorKey,
             title: 'Gestão de Condomínio',
             theme: themeProvider.currentTheme.copyWith(
               pageTransitionsTheme: const PageTransitionsTheme(

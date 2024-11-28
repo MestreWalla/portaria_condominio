@@ -10,6 +10,9 @@ class MoradorController {
   /// **CREATE** - Adicionar um novo morador no Firestore e Firebase Authentication
   Future<void> cadastrarMorador(Morador morador) async {
     try {
+      print('Iniciando cadastro de morador');
+      print('Morador tem foto? ${morador.photoURL != null ? 'Sim' : 'Não'}');
+      
       // Criar o usuário no Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
@@ -19,13 +22,45 @@ class MoradorController {
 
       // Obter o UID do usuário criado
       String uid = userCredential.user!.uid;
+      print('Usuário criado no Authentication com ID: $uid');
 
-      // Salvar os dados no Firestore
-      await _moradoresCollection.doc(uid).set({
+      // Preparar os dados para salvar
+      final moradorData = {
         ...morador.toJson(),
         'id': uid,
+      };
+
+      print('Dados a serem salvos no Firestore:');
+      moradorData.forEach((key, value) {
+        if (key != 'photoURL') {
+          print('$key: ${value.toString().substring(0, value.toString().length.clamp(0, 50))}...');
+        } else {
+          print('photoURL: ${value != null ? '${value.toString().length} caracteres' : 'null'}');
+        }
       });
+
+      // Salvar os dados no Firestore
+      await _moradoresCollection.doc(uid).set(moradorData);
+      print('Dados salvos com sucesso no Firestore');
+
+      // Verificar se os dados foram salvos corretamente
+      final docSnapshot = await _moradoresCollection.doc(uid).get();
+      final savedData = docSnapshot.data() as Map<String, dynamic>?;
+      
+      if (savedData != null) {
+        print('Verificação dos dados salvos:');
+        savedData.forEach((key, value) {
+          if (key != 'photoURL') {
+            print('$key: ${value.toString().substring(0, value.toString().length.clamp(0, 50))}...');
+          } else {
+            print('photoURL: ${value != null ? '${value.toString().length} caracteres' : 'null'}');
+          }
+        });
+      } else {
+        print('ERRO: Documento não encontrado após salvar');
+      }
     } catch (e) {
+      print('ERRO ao cadastrar morador: $e');
       throw Exception('Erro ao criar morador: $e');
     }
   }
@@ -83,6 +118,38 @@ class MoradorController {
       await _moradoresCollection.doc(morador.id).update(morador.toJson());
     } catch (e) {
       throw Exception('Erro ao atualizar morador: $e');
+    }
+  }
+
+  /// **UPDATE** - Atualizar a foto do morador
+  Future<void> atualizarFotoMorador(String id, String fotoBase64) async {
+    try {
+      print('Tentando atualizar foto do morador: $id');
+      print('Tamanho da foto em base64: ${fotoBase64.length} caracteres');
+      
+      await _moradoresCollection.doc(id).update({
+        'photoURL': fotoBase64,
+      });
+      
+      // Verifica se a foto foi salva corretamente
+      final docSnapshot = await _moradoresCollection.doc(id).get();
+      final data = docSnapshot.data() as Map<String, dynamic>?;
+      final savedPhotoURL = data?['photoURL'] as String?;
+      
+      if (savedPhotoURL == null) {
+        print('ERRO: Foto não foi salva no banco');
+        throw Exception('Foto não foi salva no banco');
+      } else if (savedPhotoURL.length != fotoBase64.length) {
+        print('ERRO: Foto salva com tamanho diferente');
+        print('Tamanho original: ${fotoBase64.length}');
+        print('Tamanho salvo: ${savedPhotoURL.length}');
+        throw Exception('Foto salva com tamanho diferente');
+      } else {
+        print('Foto salva com sucesso!');
+      }
+    } catch (e) {
+      print('ERRO ao atualizar foto do morador: $e');
+      throw Exception('Erro ao atualizar foto do morador: $e');
     }
   }
 

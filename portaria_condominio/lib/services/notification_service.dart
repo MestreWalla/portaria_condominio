@@ -8,6 +8,7 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // Canal de notificação para Android
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -44,8 +45,7 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        debugPrint('Notification clicked: ${details.payload}');
-        // Aqui você pode adicionar a navegação para a tela de notificações
+        _handleNotificationTap(details.payload);
       },
     );
 
@@ -58,16 +58,75 @@ class NotificationService {
     String? token = await _fcm.getToken();
     if (token != null) {
       await _saveTokenToFirestore(token);
+      // Iniciar monitoramento de notificações pendentes
+      _startListeningForPendingNotifications(token);
     }
 
     // Atualizar token quando for atualizado
-    _fcm.onTokenRefresh.listen(_saveTokenToFirestore);
+    _fcm.onTokenRefresh.listen((String token) {
+      _saveTokenToFirestore(token);
+      // Atualizar monitoramento com novo token
+      _startListeningForPendingNotifications(token);
+    });
+  }
+
+  // Método para monitorar notificações pendentes
+  void _startListeningForPendingNotifications(String token) {
+    _firestore
+        .collection('notifications_queue')
+        .where('token', isEqualTo: token)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .listen((snapshot) async {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final notification = change.doc.data();
+          if (notification != null) {
+            // Mostrar notificação local
+            await showLocalNotification(
+              title: notification['notification']['title'] ?? '',
+              body: notification['notification']['body'] ?? '',
+              payload: notification['data']?['type'] == 'chat_message'
+                  ? 'chat:${notification['data']['senderId']}'
+                  : notification['data']?['notificationId'],
+            );
+
+            // Atualizar status da notificação
+            await change.doc.reference.update({
+              'status': 'delivered',
+              'deliveredAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }
+    }, onError: (error) {
+      debugPrint('Error listening for notifications: $error');
+    });
+  }
+
+  void _handleNotificationTap(String? payload) {
+    if (payload == null) return;
+
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+
+    if (payload.startsWith('chat:')) {
+      // Navegar para o chat específico
+      final senderId = payload.split(':')[1];
+      Navigator.of(context).pushNamed(
+        '/chat',
+        arguments: {'userId': senderId},
+      );
+    } else {
+      // Navegar para a tela de notificações
+      Navigator.of(context).pushNamed('/notifications');
+    }
   }
 
   Future<void> _saveTokenToFirestore(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final userDoc = _firestore.collection('users').doc(user.uid);
+      final userDoc = _firestore.collection('moradores').doc(user.uid);
       final docSnapshot = await userDoc.get();
 
       if (docSnapshot.exists) {
@@ -91,25 +150,19 @@ class NotificationService {
     debugPrint('Received foreground message: ${message.messageId}');
 
     RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
 
-    if (notification != null && android != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            icon: android.smallIcon,
-            importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-            enableVibration: true,
-          ),
-        ),
-        payload: message.data.toString(),
+    if (notification != null) {
+      String? payload;
+      if (message.data['type'] == 'chat_message') {
+        payload = 'chat:${message.data['senderId']}';
+      } else {
+        payload = message.data['notificationId'];
+      }
+
+      await showLocalNotification(
+        title: notification.title ?? '',
+        body: notification.body ?? '',
+        payload: payload,
       );
     }
   }
@@ -128,7 +181,7 @@ class NotificationService {
   }) async {
     try {
       // Buscar o token FCM do usuário
-      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userDoc = await _firestore.collection('moradores').doc(userId).get();
       final fcmToken = userDoc.data()?['fcmToken'] as String?;
 
       if (fcmToken == null) {
@@ -169,6 +222,47 @@ class NotificationService {
       debugPrint('Error sending notification: $e');
       rethrow;
     }
+  }
+
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    final androidDetails = AndroidNotificationDetails(
+      channel.id,
+      channel.name,
+      channelDescription: 'Canal para notificações importantes',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      enableLights: true,
+      enableVibration: true,
+      playSound: true,
+      sound: const RawResourceAndroidNotificationSound('notification'),
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+      ),
+      category: AndroidNotificationCategory.message,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+      payload: payload,
+    );
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _localNotifications.cancelAll();
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _localNotifications.cancel(id);
   }
 }
 

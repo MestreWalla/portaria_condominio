@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/message_model.dart';
+import '../services/notification_service.dart';
 
 class ChatController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final NotificationService _notificationService = NotificationService();
 
   /// Envia uma mensagem para o Firestore
   Future<void> sendMessage(Message message) async {
@@ -21,6 +23,22 @@ class ChatController {
           .doc(chatId)
           .collection('messages')
           .add(message.toJson());
+
+      // Buscar informações do remetente
+      final senderDoc = await _firestore.collection('moradores').doc(message.senderId).get();
+      final senderName = senderDoc.data()?['nome'] ?? 'Usuário';
+
+      // Enviar notificação push para o destinatário
+      await _notificationService.sendNotificationToUser(
+        userId: message.receiverId,
+        title: 'Nova mensagem de $senderName',
+        body: message.content,
+        data: {
+          'type': 'chat_message',
+          'senderId': message.senderId,
+          'chatId': chatId,
+        },
+      );
     } catch (e) {
       throw Exception('Erro ao enviar mensagem: $e');
     }

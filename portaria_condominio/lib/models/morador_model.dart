@@ -10,6 +10,7 @@ class Morador {
   final String endereco;
   final String numeroCasa; // Número da casa no condomínio
   final String role;
+  final String? photoURL; // URL da foto do morador
 
   // Construtor
   Morador({
@@ -22,6 +23,7 @@ class Morador {
     required this.endereco,
     required this.numeroCasa,
     this.role = 'morador',
+    this.photoURL,
   });
 
   // Construtor para criar um Morador a partir de um documento Firestore
@@ -37,12 +39,19 @@ class Morador {
       endereco: data['endereco'] ?? '',
       numeroCasa: data['numeroCasa'] ?? '',
       role: data['role'] ?? 'morador',
+      photoURL: data['photoURL'],
     );
   }
 
   // Método para converter o Morador em um mapa (JSON) para salvar no Firestore
   Map<String, dynamic> toJson() {
-    return {
+    print('Convertendo Morador para JSON');
+    print('photoURL presente? ${photoURL != null ? 'Sim' : 'Não'}');
+    if (photoURL != null) {
+      print('Tamanho do photoURL: ${photoURL!.length} caracteres');
+    }
+
+    final json = {
       'nome': nome,
       'cpf': cpf,
       'telefone': telefone,
@@ -51,6 +60,20 @@ class Morador {
       'endereco': endereco,
       'numeroCasa': numeroCasa,
       'role': role,
+      'photoURL': photoURL,
     };
+
+    print('JSON gerado com os seguintes campos:');
+    json.forEach((key, value) {
+      if (key != 'photoURL' && key != 'senha') {
+        print('$key: $value');
+      } else if (key == 'photoURL') {
+        print('photoURL: ${value != null ? '${value.toString().length} caracteres' : 'null'}');
+      } else {
+        print('$key: ***');
+      }
+    });
+
+    return json;
   }
 }
