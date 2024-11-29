@@ -267,60 +267,58 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          child: TypeAheadField(
-            textFieldConfiguration: TextFieldConfiguration(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              decoration: InputDecoration(
-                hintText: localizations.translate('search_address'),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_searchController.text.isNotEmpty)
+          child: TypeAheadField<String>(
+            builder: (context, controller, focusNode) {
+              return TextField(
+                controller: controller,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  hintText: localizations.translate('search_address'),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: () {
+                            controller.clear();
+                            focusNode.unfocus();
+                          },
+                        ),
                       IconButton(
                         icon: Icon(
-                          Icons.clear,
-                          color: Theme.of(context).colorScheme.primary,
+                          Icons.my_location,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
-                        onPressed: () {
-                          _searchController.clear();
-                          _searchFocusNode.unfocus();
-                        },
+                        onPressed: _getUserLocation,
                       ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.my_location,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                      onPressed: _getUserLocation,
-                    ),
-                  ],
+                    ],
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-              ),
-            ),
-            suggestionsCallback: _getSuggestions,
-            suggestionsBoxDecoration: SuggestionsBoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              elevation: 8,
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            transitionBuilder: (context, suggestionsBox, controller) {
-              return AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                child: suggestionsBox,
               );
             },
-            itemBuilder: (context, String suggestion) {
+            decorationBuilder: (context, child) {
+              return Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).colorScheme.surface,
+                child: child,
+              );
+            },
+            itemBuilder: (context, suggestion) {
               final isMoradorSuggestion = suggestion.contains(' - ');
               final isNameMatch = isMoradorSuggestion && 
                   _moradores.any((m) => suggestion.toLowerCase().startsWith(m.nome.toLowerCase()));
@@ -347,12 +345,11 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                     : null,
               );
             },
-            onSuggestionSelected: _handleSuggestionSelected,
+            onSelected: _handleSuggestionSelected,
+            suggestionsCallback: _getSuggestions,
+            animationDuration: const Duration(milliseconds: 300),
             hideOnEmpty: true,
             hideOnLoading: false,
-            keepSuggestionsOnLoading: true,
-            animationDuration: const Duration(milliseconds: 300),
-            minCharsForSuggestions: 3,
           ),
         ),
       ),
