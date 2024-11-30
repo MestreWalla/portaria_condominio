@@ -271,16 +271,7 @@ class _ChatListViewState extends State<ChatListView> {
                               return Card(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: colorScheme.primary,
-                                    child: Text(
-                                      morador.nome[0].toUpperCase(),
-                                      style: TextStyle(
-                                        color: colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
+                                  leading: _buildAvatar(morador.photoURL, colorScheme, morador.nome),
                                   title: Text(
                                     morador.nome,
                                     style: TextStyle(
@@ -303,6 +294,7 @@ class _ChatListViewState extends State<ChatListView> {
                                         builder: (context) => ChatView(
                                           receiverId: morador.id,
                                           receiverName: morador.nome,
+                                          photoURL: morador.photoURL,
                                         ),
                                       ),
                                     );
@@ -332,16 +324,7 @@ class _ChatListViewState extends State<ChatListView> {
                               return Card(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: colorScheme.secondary,
-                                    child: Text(
-                                      prestador.nome[0].toUpperCase(),
-                                      style: TextStyle(
-                                        color: colorScheme.onSecondary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
+                                  leading: _buildAvatar(prestador.photoURL, colorScheme, prestador.nome),
                                   title: Text(
                                     prestador.nome,
                                     style: TextStyle(
@@ -364,6 +347,7 @@ class _ChatListViewState extends State<ChatListView> {
                                         builder: (context) => ChatView(
                                           receiverId: prestador.id,
                                           receiverName: prestador.nome,
+                                          photoURL: prestador.photoURL,
                                         ),
                                       ),
                                     );

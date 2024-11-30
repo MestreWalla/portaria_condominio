@@ -56,7 +56,7 @@ class AppRoutes {
       mapa: (_) => const MapaView(),
       settings: (_) => const SettingsView(),
       cadastroNotificacoes: (_) => const NotificationCreationView(),
-      usersListView: (_) => const UsersListView(),
+      // usersListView: (_) => const UsersListView(),
       chatList: (_) => const ChatListView(),
       qrScanner: (_) => const QRScannerView(),
       profile: (_) => const ProfileView(),

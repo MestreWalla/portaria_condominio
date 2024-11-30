@@ -301,7 +301,6 @@ class HomeView extends StatelessWidget {
     final configController = Provider.of<ConfiguracoesController>(context);
     final localizations = AppLocalizations.of(context);
     final notificationController = NotificationController();
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: SafeArea(
