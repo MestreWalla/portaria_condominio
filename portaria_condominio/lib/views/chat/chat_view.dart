@@ -6,6 +6,7 @@ import '../../controllers/chat_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/message_model.dart';
 import 'chat_input_field.dart';
+import '../../widgets/avatar_widget.dart';
 
 class ChatView extends StatefulWidget {
   final String receiverId;
@@ -68,80 +69,6 @@ class _ChatViewState extends State<ChatView> {
     super.dispose();
   }
 
-  Widget _buildAvatar(String? photoURL, ColorScheme colorScheme, String userName) {
-    debugPrint('Building avatar for user: $userName');
-    debugPrint('Photo URL present: ${photoURL != null}');
-    if (photoURL != null) {
-      debugPrint('Photo URL length: ${photoURL.length}');
-      debugPrint('Photo URL start: ${photoURL.substring(0, photoURL.length.clamp(0, 50))}...');
-    }
-
-    if (photoURL != null && photoURL.isNotEmpty) {
-      try {
-        String base64String;
-        
-        // Remover cabeçalho data:image se presente
-        if (photoURL.startsWith('data:image')) {
-          debugPrint('Foto contém cabeçalho data:image, removendo...');
-          base64String = photoURL.split(',')[1];
-        } else {
-          debugPrint('Usando string base64 diretamente');
-          base64String = photoURL;
-        }
-
-        // Remover espaços em branco e quebras de linha
-        base64String = base64String.trim().replaceAll(RegExp(r'[\n\r\s]'), '');
-        debugPrint('Base64 string length após limpeza: ${base64String.length}');
-
-        // Validar se é uma string base64 válida
-        try {
-          final decoded = base64Decode(base64String);
-          debugPrint('Base64 decodificado com sucesso: ${decoded.length} bytes');
-
-          return Hero(
-            tag: 'avatar_${widget.receiverId}',
-            child: CircleAvatar(
-              radius: 20,
-              backgroundImage: MemoryImage(decoded),
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              onBackgroundImageError: (exception, stackTrace) {
-                debugPrint('Erro ao carregar imagem: $exception');
-                debugPrint('Stack trace: $stackTrace');
-                return;
-              },
-            ),
-          );
-        } catch (e) {
-          debugPrint('Erro ao decodificar base64: $e');
-          return _buildDefaultAvatar(colorScheme, userName);
-        }
-      } catch (e) {
-        debugPrint('Erro ao processar imagem: $e');
-        return _buildDefaultAvatar(colorScheme, userName);
-      }
-    }
-
-    debugPrint('Usando avatar padrão para $userName');
-    return _buildDefaultAvatar(colorScheme, userName);
-  }
-
-  Widget _buildDefaultAvatar(ColorScheme colorScheme, String userName) {
-    return Hero(
-      tag: 'avatar_default_${widget.receiverId}',
-      child: CircleAvatar(
-        radius: 20,
-        backgroundColor: colorScheme.primary,
-        child: Text(
-          userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-          style: TextStyle(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final userId = authController.currentUser?.uid;
@@ -175,7 +102,12 @@ class _ChatViewState extends State<ChatView> {
           titleSpacing: 0,
           title: Row(
             children: [
-              _buildAvatar(widget.photoURL, colorScheme, widget.receiverName),
+              AvatarWidget(
+                photoURL: widget.photoURL,
+                userName: widget.receiverName,
+                radius: 20,
+                heroTag: 'avatar_${widget.receiverId}',
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

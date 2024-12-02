@@ -9,6 +9,7 @@ import '../../controllers/chat_controller.dart';
 import '../../controllers/morador_controller.dart';
 import '../../controllers/prestador_controller.dart';
 import 'chat_view.dart';
+import '../../widgets/avatar_widget.dart';
 
 class ChatListView extends StatefulWidget {
   const ChatListView({super.key});
@@ -102,53 +103,6 @@ class _ChatListViewState extends State<ChatListView> {
     );
   }
 
-  Widget _buildAvatar(String? photoURL, ColorScheme colorScheme, String userName) {
-    if (photoURL != null && photoURL.isNotEmpty) {
-      try {
-        String base64String;
-        if (photoURL.startsWith('data:image')) {
-          base64String = photoURL.split(',')[1];
-        } else {
-          base64String = photoURL;
-        }
-
-        return Hero(
-          tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
-          child: CircleAvatar(
-            radius: 24,
-            backgroundImage: MemoryImage(base64Decode(base64String)),
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            onBackgroundImageError: (exception, stackTrace) {
-              debugPrint('Erro ao carregar imagem: $exception');
-              return;
-            },
-          ),
-        );
-      } catch (e) {
-        debugPrint('Erro ao decodificar base64: $e');
-        return _buildDefaultAvatar(colorScheme, userName);
-      }
-    }
-    return _buildDefaultAvatar(colorScheme, userName);
-  }
-
-  Widget _buildDefaultAvatar(ColorScheme colorScheme, String userName) {
-    return Hero(
-      tag: 'avatar_default_${DateTime.now().millisecondsSinceEpoch}',
-      child: CircleAvatar(
-        radius: 24,
-        backgroundColor: colorScheme.primary,
-        child: Text(
-          userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-          style: TextStyle(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<Widget> _buildChatTile(String currentUserId, String otherUserId) async {
     try {
       final colorScheme = Theme.of(context).colorScheme;
@@ -185,7 +139,11 @@ class _ChatListViewState extends State<ChatListView> {
           final unreadCount = unreadSnapshot.data ?? 0;
 
           return ListTile(
-            leading: _buildAvatar(photoURL, colorScheme, userName ?? ''),
+            leading: AvatarWidget(
+              photoURL: photoURL,
+              userName: userName ?? 'Usuário',
+              heroTag: 'avatar',
+            ),
             title: Text(userName ?? 'Usuário'),
             subtitle: Text(lastMessage ?? 'Sem mensagens'),
             trailing: unreadCount > 0 ? Container(
@@ -271,7 +229,11 @@ class _ChatListViewState extends State<ChatListView> {
                               return Card(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: ListTile(
-                                  leading: _buildAvatar(morador.photoURL, colorScheme, morador.nome),
+                                  leading: AvatarWidget(
+                                    photoURL: morador.photoURL,
+                                    userName: morador.nome,
+                                    heroTag: 'avatar',
+                                  ),
                                   title: Text(
                                     morador.nome,
                                     style: TextStyle(
@@ -324,7 +286,11 @@ class _ChatListViewState extends State<ChatListView> {
                               return Card(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: ListTile(
-                                  leading: _buildAvatar(prestador.photoURL, colorScheme, prestador.nome),
+                                  leading: AvatarWidget(
+                                    photoURL: prestador.photoURL,
+                                    userName: prestador.nome,
+                                    heroTag: 'avatar',
+                                  ),
                                   title: Text(
                                     prestador.nome,
                                     style: TextStyle(
