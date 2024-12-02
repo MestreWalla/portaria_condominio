@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../views/chat/chat_view.dart';
-import '../views/chat/user_list_view.dart';
 import '../views/chat/chat_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
 import '../views/home/home_view.dart';

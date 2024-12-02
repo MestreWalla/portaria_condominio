@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'dart:convert';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/message_model.dart';
@@ -72,7 +71,6 @@ class _ChatViewState extends State<ChatView> {
   @override
   Widget build(BuildContext context) {
     final userId = authController.currentUser?.uid;
-    final colorScheme = Theme.of(context).colorScheme;
 
     if (userId == null) {
       return Scaffold(
