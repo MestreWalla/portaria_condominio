@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/encomenda_controller.dart';
 import '../../controllers/morador_controller.dart';
 import '../../models/encomenda_model.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
-import '../../widgets/avatar_widget.dart';
 
 class EncomendasView extends StatefulWidget {
   const EncomendasView({super.key});

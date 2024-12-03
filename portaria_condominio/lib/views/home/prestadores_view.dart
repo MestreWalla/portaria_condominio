@@ -5,6 +5,7 @@ import '../../controllers/prestador_controller.dart';
 import '../../models/prestador_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
+import 'package:portaria_condominio/widgets/avatar_widget.dart';
 
 class PrestadoresView extends StatefulWidget {
   final String currentUserId;
@@ -133,12 +134,10 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                                 children: [
                                   Hero(
                                     tag: 'avatar_${prestador.id}',
-                                    child: CircleAvatar(
-                                      backgroundColor: colorScheme.primary,
-                                      child: Text(
-                                        prestador.nome[0].toUpperCase(),
-                                        style: TextStyle(color: colorScheme.onPrimary),
-                                      ),
+                                    child: AvatarWidget(
+                                      photoURL: prestador.photoURL,
+                                      userName: prestador.nome,
+                                      radius: 24,
                                     ),
                                   ),
                                   const SizedBox(width: 16),

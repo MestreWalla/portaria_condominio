@@ -261,46 +261,25 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   }
 
   Widget _buildLargeAvatar(String? photoURL) {
-    if (photoURL != null && photoURL.isNotEmpty) {
-      try {
-        String base64String;
-        if (photoURL.startsWith('data:image')) {
-          base64String = photoURL.split(',')[1];
-        } else {
-          base64String = photoURL;
-        }
-
-        return Hero(
-          tag: 'avatar_large_${DateTime.now().millisecondsSinceEpoch}',
-          child: CircleAvatar(
-            radius: 50,
-            backgroundImage: MemoryImage(base64Decode(base64String)),
-            backgroundColor: Colors.grey[300],
-            onBackgroundImageError: (exception, stackTrace) {
-              debugPrint('Erro ao carregar imagem grande: $exception');
-              return;
-            },
-          ),
-        );
-      } catch (e) {
-        debugPrint('Erro ao decodificar base64 (imagem grande): $e');
-        return _buildLargeDefaultAvatar();
-      }
-    }
-    return _buildLargeDefaultAvatar();
+    return Hero(
+      tag: 'avatar_large_${DateTime.now().millisecondsSinceEpoch}',
+      child: AvatarWidget(
+        photoURL: photoURL,
+        userName: '',
+        radius: 50,
+        heroTag: 'avatar_large_${DateTime.now().millisecondsSinceEpoch}',
+      ),
+    );
   }
 
   Widget _buildLargeDefaultAvatar() {
     return Hero(
       tag: 'avatar_large_default_${DateTime.now().millisecondsSinceEpoch}',
-      child: CircleAvatar(
+      child: AvatarWidget(
+        photoURL: null,
+        userName: '',
         radius: 50,
-        backgroundColor: Colors.grey[300],
-        child: Icon(
-          Icons.person,
-          size: 50,
-          color: Colors.grey[600],
-        ),
+        heroTag: 'avatar_large_default_${DateTime.now().millisecondsSinceEpoch}',
       ),
     );
   }
