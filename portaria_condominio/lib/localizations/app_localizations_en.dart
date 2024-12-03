@@ -205,6 +205,12 @@ class AppLocalizationsEn {
     'mark_as_collected': 'Mark as collected',
     'confirm_collection': 'Confirm Collection',
     'confirm_collection_message': 'Do you want to confirm the collection of this package?',
+    'package_history': 'Package History',
+    'collection_date': 'Collection Date',
+    'collected_by': 'Collected by',
+    'collected_by_doorman': 'Collected by doorman',
+    'collected_by_resident': 'Collected by resident',
+    'view_history': 'View History',
     
     // QR Code
     'generate_qr_code': 'Generate QR Code',

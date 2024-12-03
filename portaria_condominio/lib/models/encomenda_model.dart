@@ -9,6 +9,7 @@ class Encomenda {
   final DateTime dataChegada;
   final bool retirada;
   final DateTime? dataRetirada;
+  final String? retiradaPor;
 
   Encomenda({
     required this.id,
@@ -19,6 +20,7 @@ class Encomenda {
     required this.dataChegada,
     this.retirada = false,
     this.dataRetirada,
+    this.retiradaPor,
   });
 
   Map<String, dynamic> toJson() {
@@ -31,6 +33,7 @@ class Encomenda {
       'dataChegada': dataChegada,
       'retirada': retirada,
       'dataRetirada': dataRetirada,
+      'retiradaPor': retiradaPor,
     };
   }
 
@@ -46,6 +49,7 @@ class Encomenda {
       dataRetirada: json['dataRetirada'] != null
           ? (json['dataRetirada'] as Timestamp).toDate()
           : null,
+      retiradaPor: json['retiradaPor'],
     );
   }
 }

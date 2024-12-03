@@ -85,6 +85,36 @@ class EncomendaController {
     }
   }
 
+  // Buscar histórico de encomendas do morador
+  Future<List<Encomenda>> buscarHistoricoEncomendas() async {
+    try {
+      final userRole = await getUserRole();
+      final user = _auth.currentUser;
+      
+      if (user == null) throw Exception('Usuário não autenticado');
+
+      Query query = _encomendasCollection
+          .orderBy('dataChegada', descending: true);
+
+      // Se for morador, filtra apenas suas encomendas
+      if (userRole == 'morador') {
+        query = query.where('moradorId', isEqualTo: user.uid);
+      } else if (userRole == 'portaria') {
+        // Porteiros veem todas as encomendas
+      } else {
+        throw Exception('Usuário sem permissão para ver encomendas');
+      }
+
+      final querySnapshot = await query.get();
+
+      return querySnapshot.docs
+          .map((doc) => Encomenda.fromJson(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Erro ao buscar histórico de encomendas: $e');
+    }
+  }
+
   // Marcar encomenda como retirada
   Future<void> marcarComoRetirada(String encomendaId) async {
     try {

@@ -243,11 +243,114 @@ class _EncomendasViewState extends State<EncomendasView> {
     );
   }
 
+  void _mostrarHistoricoEncomendas() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        builder: (_, controller) => Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).translate('package_history'),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: FutureBuilder<List<Encomenda>>(
+                  future: _encomendaController.buscarHistoricoEncomendas(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          snapshot.error.toString(),
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
+
+                    final encomendas = snapshot.data ?? [];
+                    if (encomendas.isEmpty) {
+                      return Center(
+                        child: Text(
+                          AppLocalizations.of(context).translate('no_packages'),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      controller: controller,
+                      itemCount: encomendas.length,
+                      itemBuilder: (context, index) {
+                        final encomenda = encomendas[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(encomenda.descricao),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${AppLocalizations.of(context).translate('sender')}: ${encomenda.remetente}'),
+                                Text(
+                                  '${AppLocalizations.of(context).translate('arrival_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
+                                ),
+                                if (encomenda.retirada && encomenda.dataRetirada != null)
+                                  Text(
+                                    '${AppLocalizations.of(context).translate('collection_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataRetirada!)}',
+                                  ),
+                                if (encomenda.retirada)
+                                  Text(
+                                    '${AppLocalizations.of(context).translate('collected_by')}: ${AppLocalizations.of(context).translate(encomenda.retiradaPor == 'portaria' ? 'collected_by_doorman' : 'collected_by_resident')}',
+                                  ),
+                              ],
+                            ),
+                            trailing: Icon(
+                              encomenda.retirada ? Icons.check_circle : Icons.schedule,
+                              color: encomenda.retirada ? Colors.green : Colors.orange,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).translate('packages')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: _mostrarHistoricoEncomendas,
+            tooltip: AppLocalizations.of(context).translate('view_history'),
+          ),
+        ],
       ),
       body: FutureBuilder<List<Encomenda>>(
         future: _encomendaController.buscarEncomendasPendentes(),
@@ -258,7 +361,6 @@ class _EncomendasViewState extends State<EncomendasView> {
 
           if (snapshot.hasError) {
             String errorMessage = snapshot.error.toString();
-            // Remove a parte técnica da mensagem de erro
             if (errorMessage.contains('Exception: ')) {
               errorMessage = errorMessage.split('Exception: ')[1];
             }
@@ -275,7 +377,6 @@ class _EncomendasViewState extends State<EncomendasView> {
           }
 
           final encomendas = snapshot.data ?? [];
-
           if (encomendas.isEmpty) {
             return Center(
               child: Text(
@@ -285,50 +386,55 @@ class _EncomendasViewState extends State<EncomendasView> {
             );
           }
 
-          return ListView.builder(
-            itemCount: encomendas.length,
-            itemBuilder: (context, index) {
-              final encomenda = encomendas[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: ListTile(
-                  title: Text(encomenda.descricao),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${AppLocalizations.of(context).translate('sender')}: ${encomenda.remetente}'),
-                      Text(
-                        '${AppLocalizations.of(context).translate('arrival_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
-                      ),
-                      Text('${AppLocalizations.of(context).translate('resident')}: ${encomenda.moradorNome}'),
-                    ],
-                  ),
-                  trailing: FutureBuilder<String>(
-                    future: _encomendaController.getUserRole(),
-                    builder: (context, roleSnapshot) {
-                      if (!roleSnapshot.hasData) return const SizedBox.shrink();
-                      
-                      final role = roleSnapshot.data!;
-                      if (role == 'portaria') {
-                        return ElevatedButton(
-                          onPressed: () => _confirmarRetirada(context, encomenda),
-                          child: Text(
-                            AppLocalizations.of(context).translate('mark_as_collected'),
-                          ),
-                        );
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: ListView.builder(
+              itemCount: encomendas.length,
+              itemBuilder: (context, index) {
+                final encomenda = encomendas[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    title: Text(encomenda.descricao),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${AppLocalizations.of(context).translate('sender')}: ${encomenda.remetente}'),
+                        Text(
+                          '${AppLocalizations.of(context).translate('arrival_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
+                        ),
+                        Text('${AppLocalizations.of(context).translate('resident')}: ${encomenda.moradorNome}'),
+                      ],
+                    ),
+                    trailing: FutureBuilder<String>(
+                      future: _encomendaController.getUserRole(),
+                      builder: (context, roleSnapshot) {
+                        if (!roleSnapshot.hasData) return const SizedBox.shrink();
+                        
+                        final role = roleSnapshot.data!;
+                        if (role == 'portaria') {
+                          return ElevatedButton(
+                            onPressed: () => _confirmarRetirada(context, encomenda),
+                            child: Text(
+                              AppLocalizations.of(context).translate('mark_as_collected'),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    onTap: () async {
+                      final role = await _encomendaController.getUserRole();
+                      if (role == 'morador') {
+                        _confirmarRetirada(context, encomenda);
                       }
-                      return const SizedBox.shrink();
                     },
                   ),
-                  onTap: () async {
-                    final role = await _encomendaController.getUserRole();
-                    if (role == 'moradores') {
-                      _confirmarRetirada(context, encomenda);
-                    }
-                  },
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),

@@ -223,6 +223,12 @@ class AppLocalizationsPt {
     'mark_as_collected': 'Marcar como retirada',
     'confirm_collection': 'Confirmar Retirada',
     'confirm_collection_message': 'Deseja confirmar a retirada desta encomenda?',
+    'package_history': 'Histórico de Encomendas',
+    'collection_date': 'Data de Retirada',
+    'collected_by': 'Retirado por',
+    'collected_by_doorman': 'Retirado pela portaria',
+    'collected_by_resident': 'Retirado pelo morador',
+    'view_history': 'Ver Histórico',
     
     // QR Code
     'generate_qr_code': 'Gerar QR Code',
