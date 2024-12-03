@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:portaria_condominio/views/home/encomendas_view.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/chat_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
@@ -7,7 +8,6 @@ import '../views/home/home_view.dart';
 import '../views/home/mapa_view.dart';
 import '../views/home/moradores_view.dart';
 import '../views/home/notificacoes_view.dart';
-import '../views/home/pedidos_view.dart';
 import '../views/home/prestadores_view.dart';
 import '../views/home/visitas_view.dart';
 import '../views/login/cadastro_view.dart';
@@ -23,7 +23,7 @@ class AppRoutes {
   static const String moradores = '/moradores';
   static const String prestadores = '/prestadores';
   static const String visitas = '/visitas';
-  static const String pedidos = '/pedidos';
+  static const String encomendas = '/encomendas';
   static const String notificacoes = '/notificacoes';
   static const String cadastroNotificacoes = '/notificacoesAdmin';
   static const String mapa = '/mapa';
@@ -50,7 +50,7 @@ class AppRoutes {
       moradores: (_) => const MoradoresView(),
       prestadores: (_) => PrestadoresView(currentUserId: currentUserId!),
       visitas: (_) => const VisitasView(),
-      pedidos: (_) => const PedidosView(),
+      encomendas: (_) => const EncomendasView(),
       notificacoes: (_) => const NotificationsView(),
       mapa: (_) => const MapaView(),
       settings: (_) => const SettingsView(),

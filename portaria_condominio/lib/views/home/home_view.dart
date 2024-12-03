@@ -321,7 +321,7 @@ class HomeView extends StatelessWidget {
                       context,
                       localizations.translate('orders'),
                       Icons.shopping_cart,
-                      '/pedidos',
+                      '/encomendas',
                       configController,
                     ),
                     _menuItem(

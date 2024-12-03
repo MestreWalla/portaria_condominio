@@ -178,12 +178,33 @@ class AppLocalizationsEn {
     
     // Chat
     'chats': 'Chats',
-    'no_chats': 'No active chats',
+    'no_chats': 'No chats started',
     'start_new_chat': 'Start new chat',
     'chat_select_residents': 'Residents',
     'chat_select_providers': 'Service Providers',
     'chat_no_residents': 'No residents found',
     'chat_no_providers': 'No service providers found',
+    
+    // Packages
+    'packages': 'Packages',
+    'new_package': 'New Package',
+    'register_package': 'Register Package',
+    'package_description': 'Package Description',
+    'sender': 'Sender',
+    'description_required': 'Description is required',
+    'sender_required': 'Sender is required',
+    'select_resident': 'Select resident',
+    'package_registered': 'Package registered successfully',
+    'error_registering_package': 'Error registering package',
+    'package_collected': 'Package collected successfully',
+    'error_updating_package': 'Error updating package',
+    'no_packages': 'No pending packages',
+    'arrival_date': 'Arrival Date',
+    'collected': 'Collected',
+    'pending': 'Pending',
+    'mark_as_collected': 'Mark as collected',
+    'confirm_collection': 'Confirm Collection',
+    'confirm_collection_message': 'Do you want to confirm the collection of this package?',
     
     // QR Code
     'generate_qr_code': 'Generate QR Code',

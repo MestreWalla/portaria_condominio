@@ -203,6 +203,27 @@ class AppLocalizationsPt {
     'chat_no_residents': 'Nenhum morador encontrado',
     'chat_no_providers': 'Nenhum prestador encontrado',
     
+    // Packages (Encomendas)
+    'packages': 'Encomendas',
+    'new_package': 'Nova Encomenda',
+    'register_package': 'Cadastrar Encomenda',
+    'package_description': 'Descrição da Encomenda',
+    'sender': 'Remetente',
+    'description_required': 'Descrição é obrigatória',
+    'sender_required': 'Remetente é obrigatório',
+    'select_resident': 'Selecione o morador',
+    'package_registered': 'Encomenda cadastrada com sucesso',
+    'error_registering_package': 'Erro ao cadastrar encomenda',
+    'package_collected': 'Encomenda retirada com sucesso',
+    'error_updating_package': 'Erro ao atualizar encomenda',
+    'no_packages': 'Nenhuma encomenda pendente',
+    'arrival_date': 'Data de Chegada',
+    'collected': 'Retirada',
+    'pending': 'Pendente',
+    'mark_as_collected': 'Marcar como retirada',
+    'confirm_collection': 'Confirmar Retirada',
+    'confirm_collection_message': 'Deseja confirmar a retirada desta encomenda?',
+    
     // QR Code
     'generate_qr_code': 'Gerar QR Code',
     'view_qr_code': 'Visualizar QR Code',
