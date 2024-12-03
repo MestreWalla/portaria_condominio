@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -103,54 +102,6 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(String? photoURL, String userName, ThemeData theme) {
-    if (photoURL != null && photoURL.isNotEmpty) {
-      try {
-        String base64String;
-        if (photoURL.startsWith('data:image')) {
-          base64String = photoURL.split(',')[1];
-        } else {
-          base64String = photoURL;
-        }
-
-        return Hero(
-          tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
-          child: CircleAvatar(
-            radius: 30,
-            backgroundImage: MemoryImage(base64Decode(base64String)),
-            backgroundColor: theme.colorScheme.onPrimary,
-            onBackgroundImageError: (exception, stackTrace) {
-              debugPrint('Erro ao carregar imagem: $exception');
-              return;
-            },
-          ),
-        );
-      } catch (e) {
-        debugPrint('Erro ao decodificar base64: $e');
-        return _buildDefaultAvatar(userName, theme);
-      }
-    }
-    return _buildDefaultAvatar(userName, theme);
-  }
-
-  Widget _buildDefaultAvatar(String userName, ThemeData theme) {
-    return Hero(
-      tag: 'avatar_default_${DateTime.now().millisecondsSinceEpoch}',
-      child: CircleAvatar(
-        radius: 30,
-        backgroundColor: theme.colorScheme.onPrimary,
-        child: Text(
-          userName[0].toUpperCase(),
-          style: TextStyle(
-            color: theme.colorScheme.primary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildProfileCard(
       BuildContext context, ConfiguracoesController configController) {
     final theme = Theme.of(context);
@@ -192,7 +143,12 @@ class HomeView extends StatelessWidget {
             tilePadding: const EdgeInsets.all(16.0),
             title: Row(
               children: [
-                _buildAvatar(photoURL, userName, theme),
+                AvatarWidget(
+                  photoURL: photoURL,
+                  userName: userName,
+                  radius: 24,
+                  heroTag: 'home_avatar',
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

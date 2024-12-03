@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import '../../localizations/app_localizations.dart';
 import '../photo_registration/photo_registration_screen.dart';
 
@@ -177,106 +176,6 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Widget _buildAvatar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    if (_photoURL != null && _photoURL!.isNotEmpty) {
-      try {
-        String base64String;
-        if (_photoURL!.startsWith('data:image')) {
-          base64String = _photoURL!.split(',')[1];
-        } else {
-          base64String = _photoURL!;
-        }
-
-        return Hero(
-          tag: 'profile_avatar',
-          child: Stack(
-            children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: MemoryImage(base64Decode(base64String)),
-                backgroundColor: colorScheme.primaryContainer,
-                onBackgroundImageError: (exception, stackTrace) {
-                  debugPrint('Erro ao carregar imagem: $exception');
-                  return;
-                },
-              ),
-              if (_isEditing)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.camera_alt,
-                        color: colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      onPressed: () => _updatePhoto(context),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      } catch (e) {
-        debugPrint('Erro ao decodificar base64: $e');
-        return _buildDefaultAvatar(context);
-      }
-    }
-    return _buildDefaultAvatar(context);
-  }
-
-  Widget _buildDefaultAvatar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Hero(
-      tag: 'profile_avatar',
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Text(
-              _nameController.text.isNotEmpty
-                  ? _nameController.text[0].toUpperCase()
-                  : '?',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-              ),
-            ),
-          ),
-          if (_isEditing)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.camera_alt,
-                    color: colorScheme.onPrimary,
-                    size: 20,
-                  ),
-                  onPressed: () => _updatePhoto(context),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _updatePhoto(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -383,7 +282,35 @@ class _ProfileViewState extends State<ProfileView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: _buildAvatar(context),
+                child: Stack(
+                  children: [
+                    AvatarWidget(
+                      photoURL: _photoURL,
+                      userName: _nameController.text,
+                      radius: 50,
+                      heroTag: 'profile_avatar',
+                    ),
+                    if (_isEditing)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.camera_alt,
+                              color: colorScheme.onPrimary,
+                              size: 20,
+                            ),
+                            onPressed: () => _updatePhoto(context),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8),
               Center(

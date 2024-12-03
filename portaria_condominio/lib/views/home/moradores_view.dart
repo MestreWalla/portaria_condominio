@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import '../../controllers/morador_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/morador_model.dart';
@@ -134,7 +135,12 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
                                 children: [
-                                  _buildAvatar(morador.photoURL),
+                                  AvatarWidget(
+                                    photoURL: morador.photoURL,
+                                    userName: morador.nome,
+                                    radius: 24,
+                                    heroTag: 'morador_${morador.id}',
+                                  ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
@@ -250,51 +256,6 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildAvatar(String? photoURL) {
-    if (photoURL != null && photoURL.isNotEmpty) {
-      try {
-        String base64String;
-        if (photoURL.startsWith('data:image')) {
-          base64String = photoURL.split(',')[1];
-        } else {
-          base64String = photoURL;
-        }
-
-        return Hero(
-          tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
-          child: CircleAvatar(
-            radius: 30,
-            backgroundImage: MemoryImage(base64Decode(base64String)),
-            backgroundColor: Colors.grey[300],
-            onBackgroundImageError: (exception, stackTrace) {
-              debugPrint('Erro ao carregar imagem: $exception');
-              return;
-            },
-          ),
-        );
-      } catch (e) {
-        debugPrint('Erro ao decodificar base64: $e');
-        return _buildDefaultAvatar();
-      }
-    }
-    return _buildDefaultAvatar();
-  }
-
-  Widget _buildDefaultAvatar() {
-    return Hero(
-      tag: 'avatar_default_${DateTime.now().millisecondsSinceEpoch}',
-      child: CircleAvatar(
-        radius: 30,
-        backgroundColor: Colors.grey[300],
-        child: Icon(
-          Icons.person,
-          size: 30,
-          color: Colors.grey[600],
-        ),
       ),
     );
   }
@@ -593,6 +554,8 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                             role: novoDados.role,
                                             photoURL: moradorAtual.photoURL, // Usa a foto mais recente
                                           );
+
+                                          // Atualiza o morador no banco com todos os dados
                                           await _controller.atualizarMorador(moradorAtualizado);
                                         } else {
                                           await _controller.atualizarMorador(novoDados);
