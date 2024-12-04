@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../localizations/app_localizations.dart';
 import '../../controllers/veiculo_controller.dart';
@@ -11,7 +12,7 @@ class CadastroVeiculosView extends StatefulWidget {
 }
 
 class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with TickerProviderStateMixin {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _marcaController = TextEditingController();
   final TextEditingController _modeloController = TextEditingController();
   final TextEditingController _placaController = TextEditingController();
@@ -20,10 +21,13 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _proprietarioController = TextEditingController();
   List<Map<String, String>> _veiculosCadastrados = [];
+  List<Map<String, dynamic>> _moradores = [];
+  List<Map<String, dynamic>> _prestadores = [];
   final VeiculoController _veiculoController = VeiculoController();
   final Map<int, AnimationController> _animationControllers = {};
   int? expandedIndex;
-  String _tipoProprietario = 'morador'; // Default value
+  String _tipoProprietario = 'morador';
+  String? _selectedProprietarioId;
 
   void _mostrarDialogCadastro() {
     showDialog(
@@ -59,134 +63,113 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                 const SizedBox(height: 24),
                 Form(
                   key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _marcaController,
-                                localizations.translate('brand'),
-                                Icons.directions_car,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _modeloController,
-                                localizations.translate('model'),
-                                Icons.directions_car_filled,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _placaController,
-                                localizations.translate('license_plate'),
-                                Icons.confirmation_number,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _corController,
-                                localizations.translate('color'),
-                                Icons.color_lens,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _anoController,
-                                localizations.translate('year'),
-                                Icons.calendar_today,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _cpfController,
-                                localizations.translate('cpf'),
-                                Icons.badge,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          _proprietarioController,
-                          localizations.translate('Nome do Proprietário'),
-                          Icons.person,
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _tipoProprietario,
-                          items: [
-                            DropdownMenuItem(
-                              value: 'morador',
-                              child: Text(localizations.translate('resident')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'visitante',
-                              child: Text(localizations.translate('visitor')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'prestador',
-                              child: Text(localizations.translate('prestador_de_servico')),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _tipoProprietario = value!;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            labelText: localizations.translate('Tipo Proprietario'),
-                            prefixIcon: Icon(Icons.category),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildProprietarioDropdown(),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              _marcaController,
+                              localizations.translate('marca'),
+                              Icons.directions_car,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(localizations.translate('cancel')),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(
+                              _modeloController,
+                              localizations.translate('modelo'),
+                              Icons.car_repair,
                             ),
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: _submitForm,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              _placaController,
+                              localizations.translate('placa'),
+                              Icons.pin,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(
+                              _corController,
+                              localizations.translate('cor'),
+                              Icons.color_lens,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildYearDropdown(),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(localizations.translate('cancel')),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
                               ),
-                              child: Text(localizations.translate('register')),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            child: Text(localizations.translate('register')),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildYearDropdown() {
+    final currentYear = DateTime.now().year;
+    final years = List.generate(50, (index) => (currentYear - index).toString());
+
+    return DropdownButtonFormField<String>(
+      value: _anoController.text.isEmpty ? currentYear.toString() : _anoController.text,
+      items: years.map((year) {
+        return DropdownMenuItem<String>(
+          value: year,
+          child: Text(year),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _anoController.text = value!;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context).translate('year'),
+        prefixIcon: const Icon(Icons.calendar_today),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return AppLocalizations.of(context).translate('field_required');
+        }
+        return null;
       },
     );
   }
@@ -256,168 +239,150 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                 const SizedBox(height: 24),
                 Form(
                   key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _marcaController,
-                                AppLocalizations.of(context).translate('brand'),
-                                Icons.directions_car,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _modeloController,
-                                AppLocalizations.of(context).translate('model'),
-                                Icons.directions_car_filled,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _placaController,
-                                AppLocalizations.of(context).translate('license_plate'),
-                                Icons.confirmation_number,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _corController,
-                                AppLocalizations.of(context).translate('color'),
-                                Icons.color_lens,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                _anoController,
-                                AppLocalizations.of(context).translate('year'),
-                                Icons.calendar_today,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                _cpfController,
-                                AppLocalizations.of(context).translate('cpf'),
-                                Icons.badge,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTextField(
-                          _proprietarioController,
-                          AppLocalizations.of(context).translate('Nome do Proprietário'),
-                          Icons.person,
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _tipoProprietario,
-                          items: [
-                            DropdownMenuItem(
-                              value: 'morador',
-                              child: Text(AppLocalizations.of(context).translate('resident')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'visitante',
-                              child: Text(AppLocalizations.of(context).translate('visitor')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'prestador',
-                              child: Text(AppLocalizations.of(context).translate('prestador_de_servico')),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              _tipoProprietario = value!;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context).translate('Tipo Proprietario'),
-                            prefixIcon: Icon(Icons.category),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: _tipoProprietario,
+                        items: [
+                          DropdownMenuItem(
+                            value: 'morador',
+                            child: Text(AppLocalizations.of(context).translate('resident')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'visitante',
+                            child: Text(AppLocalizations.of(context).translate('visitor')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'prestador',
+                            child: Text(AppLocalizations.of(context).translate('prestador_de_servico')),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _tipoProprietario = value!;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context).translate('owner_type'),
+                          prefixIcon: const Icon(Icons.category),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text(AppLocalizations.of(context).translate('cancel')),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProprietarioDropdown(),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              _marcaController,
+                              AppLocalizations.of(context).translate('marca'),
+                              Icons.directions_car,
                             ),
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: () async {
-                                try {
-                                  // Update vehicle in Firestore
-                                  await _veiculoController.atualizarVeiculo(veiculo['placa']!, {
-                                    'marca': _marcaController.text,
-                                    'modelo': _modeloController.text,
-                                    'placa': _placaController.text,
-                                    'cor': _corController.text,
-                                    'ano': _anoController.text,
-                                    'cpf': _cpfController.text,
-                                    'proprietario': _proprietarioController.text,
-                                    'tipo_proprietario': _tipoProprietario,
-                                  });
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(
+                              _modeloController,
+                              AppLocalizations.of(context).translate('modelo'),
+                              Icons.car_repair,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              _placaController,
+                              AppLocalizations.of(context).translate('placa'),
+                              Icons.pin,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildTextField(
+                              _corController,
+                              AppLocalizations.of(context).translate('cor'),
+                              Icons.color_lens,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildYearDropdown(),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        _proprietarioController,
+                        AppLocalizations.of(context).translate('Nome do Proprietário'),
+                        Icons.person,
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(AppLocalizations.of(context).translate('cancel')),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: () async {
+                              try {
+                                // Update vehicle in Firestore
+                                await _veiculoController.atualizarVeiculo(veiculo['placa']!, {
+                                  'marca': _marcaController.text,
+                                  'modelo': _modeloController.text,
+                                  'placa': _placaController.text,
+                                  'cor': _corController.text,
+                                  'ano': _anoController.text,
+                                  'cpf': _cpfController.text,
+                                  'proprietario': _proprietarioController.text,
+                                  'tipo_proprietario': _tipoProprietario,
+                                });
 
-                                  // Update UI
-                                  setState(() {
-                                    int index = _veiculosCadastrados.indexWhere((v) => v['placa'] == veiculo['placa']);
-                                    if (index != -1) {
-                                      _veiculosCadastrados[index] = {
-                                        'marca': _marcaController.text,
-                                        'modelo': _modeloController.text,
-                                        'placa': _placaController.text,
-                                        'cor': _corController.text,
-                                        'ano': _anoController.text,
-                                        'cpf': _cpfController.text,
-                                        'proprietario': _proprietarioController.text,
-                                        'tipo_proprietario': _tipoProprietario,
-                                      };
-                                    }
-                                  });
+                                // Update UI
+                                setState(() {
+                                  int index = _veiculosCadastrados.indexWhere((v) => v['placa'] == veiculo['placa']);
+                                  if (index != -1) {
+                                    _veiculosCadastrados[index] = {
+                                      'marca': _marcaController.text,
+                                      'modelo': _modeloController.text,
+                                      'placa': _placaController.text,
+                                      'cor': _corController.text,
+                                      'ano': _anoController.text,
+                                      'cpf': _cpfController.text,
+                                      'proprietario': _proprietarioController.text,
+                                      'tipo_proprietario': _tipoProprietario,
+                                    };
+                                  }
+                                });
 
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(AppLocalizations.of(context).translate('vehicle_updated'))),
-                                  );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(AppLocalizations.of(context).translate('error_updating_vehicle'))),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(AppLocalizations.of(context).translate('vehicle_updated'))),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(AppLocalizations.of(context).translate('error_updating_vehicle'))),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
                               ),
-                              child: Text(AppLocalizations.of(context).translate('save')),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            child: Text(AppLocalizations.of(context).translate('save')),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -441,7 +406,10 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppLocalizations.of(context).translate('delete')),
+            child: Text(
+              AppLocalizations.of(context).translate('delete'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -464,13 +432,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchVeiculos();
-  }
-
-  Future<void> _fetchVeiculos() async {
+  Future<void> _carregarVeiculos() async {
     try {
       final veiculos = await _veiculoController.listarVeiculos();
       setState(() {
@@ -490,6 +452,136 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
         SnackBar(content: Text(AppLocalizations.of(context).translate('error_fetching_data'))),
       );
     }
+  }
+
+  Future<void> _carregarProprietarios() async {
+    try {
+      // Carregar moradores e prestadores do Firestore
+      final moradoresSnapshot = await FirebaseFirestore.instance.collection('moradores').get();
+      final prestadoresSnapshot = await FirebaseFirestore.instance.collection('prestadores').get();
+
+      setState(() {
+        _moradores = moradoresSnapshot.docs.map((doc) => {
+          'id': doc.id,
+          'nome': doc['nome'],
+          'cpf': doc['cpf'],
+          'tipo': 'morador'
+        }).toList();
+
+        _prestadores = prestadoresSnapshot.docs.map((doc) => {
+          'id': doc.id,
+          'nome': doc['nome'],
+          'cpf': doc['cpf'],
+          'tipo': 'prestador'
+        }).toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar proprietários: $e');
+    }
+  }
+
+  Widget _buildProprietarioDropdown() {
+    // Combina moradores e prestadores em uma única lista
+    List<Map<String, dynamic>> proprietariosDisponiveis = [..._moradores, ..._prestadores];
+
+    return SearchAnchor(
+      builder: (BuildContext context, SearchController controller) {
+        return SearchBar(
+          controller: controller,
+          padding: const MaterialStatePropertyAll<EdgeInsets>(
+            EdgeInsets.symmetric(horizontal: 16.0),
+          ),
+          onTap: () {
+            controller.openView();
+          },
+          leading: const Icon(Icons.person),
+          trailing: [
+            if (_proprietarioController.text.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  setState(() {
+                    _selectedProprietarioId = null;
+                    _proprietarioController.text = '';
+                    _cpfController.text = '';
+                    _tipoProprietario = '';
+                  });
+                  controller.clear();
+                },
+              ),
+          ],
+          hintText: _proprietarioController.text.isEmpty
+              ? AppLocalizations.of(context).translate('Nome do Proprietário')
+              : _proprietarioController.text,
+          constraints: const BoxConstraints(
+            minHeight: 56,
+          ),
+        );
+      },
+      suggestionsBuilder: (BuildContext context, SearchController controller) {
+        final String searchText = controller.text.toLowerCase();
+        
+        List<Widget> suggestions = [];
+
+        // Adiciona os proprietários cadastrados
+        suggestions.addAll(
+          proprietariosDisponiveis
+              .where((proprietario) =>
+                  proprietario['nome'].toString().toLowerCase().contains(searchText))
+              .map((proprietario) {
+                String prefixo = proprietario['tipo'] == 'morador' ? '🏠 ' : '🛠️ ';
+                return ListTile(
+                  leading: Icon(
+                    proprietario['tipo'] == 'morador' ? Icons.home : Icons.build,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  title: Text('$prefixo${proprietario['nome']}'),
+                  subtitle: Text(proprietario['cpf']),
+                  onTap: () {
+                    setState(() {
+                      _selectedProprietarioId = proprietario['id'];
+                      _proprietarioController.text = proprietario['nome'];
+                      _cpfController.text = proprietario['cpf'];
+                      _tipoProprietario = proprietario['tipo'];
+                    });
+                    controller.closeView(proprietario['nome']);
+                  },
+                );
+              })
+        );
+
+        // Adiciona opção de visitante se houver texto digitado
+        if (searchText.isNotEmpty) {
+          suggestions.add(
+            ListTile(
+              leading: Icon(
+                Icons.person_outline,
+                color: Theme.of(context).primaryColor,
+              ),
+              title: Text('👥 ${controller.text} (${AppLocalizations.of(context).translate('visitor')})'),
+              onTap: () {
+                setState(() {
+                  _selectedProprietarioId = null;
+                  _proprietarioController.text = controller.text;
+                  _cpfController.text = '';
+                  _tipoProprietario = 'visitante';
+                });
+                controller.closeView(controller.text);
+              },
+            ),
+          );
+        }
+
+        return suggestions;
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarVeiculos();
+    _carregarProprietarios();
   }
 
   AnimationController _getAnimationController(int index) {
@@ -692,19 +784,13 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                                                   ),
                                                   const SizedBox(height: 8),
                                                   _buildInfoRow(
-                                                    localizations.translate('cpf'),
-                                                    veiculo['cpf']!,
-                                                    colorScheme,
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  _buildInfoRow(
                                                     localizations.translate('Nome do Proprietário'),
                                                     veiculo['proprietario']!,
                                                     colorScheme,
                                                   ),
                                                   const SizedBox(height: 8),
                                                   _buildInfoRow(
-                                                    localizations.translate('tipo_proprietario'),
+                                                    localizations.translate('owner_type'),
                                                     _getTipoProprietarioLabel(veiculo['tipo_proprietario']!, localizations),
                                                     colorScheme,
                                                   ),
