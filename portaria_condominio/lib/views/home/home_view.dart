@@ -244,6 +244,13 @@ class HomeView extends StatelessWidget {
                       '/mapa',
                       configController,
                     ),
+                    _menuItem(
+                      context,
+                      localizations.translate('vehicle_registration'),
+                      Icons.directions_car,
+                      '/cadastroVeiculos',
+                      configController,
+                    ),
                   ],
                 );
               },
