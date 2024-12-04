@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import '../views/settings/settings_view.dart';
 
-class ProfileCardWidget extends StatelessWidget {
+class ProfileCardWidget extends StatefulWidget {
   final String? photoURL;
   final String userName;
   final String userEmail;
@@ -16,6 +16,31 @@ class ProfileCardWidget extends StatelessWidget {
     required this.userEmail,
     required this.apartment,
   });
+
+  @override
+  State<ProfileCardWidget> createState() => _ProfileCardWidgetState();
+}
+
+class _ProfileCardWidgetState extends State<ProfileCardWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _animation = Tween<double>(begin: 0, end: 0.5).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +62,21 @@ class ProfileCardWidget extends StatelessWidget {
         backgroundColor: theme.colorScheme.primary,
         collapsedBackgroundColor: theme.colorScheme.primary,
         tilePadding: const EdgeInsets.all(16.0),
+        onExpansionChanged: (expanded) {
+          setState(() {
+            _isExpanded = expanded;
+          });
+          if (expanded) {
+            _controller.forward();
+          } else {
+            _controller.reverse();
+          }
+        },
         title: Row(
           children: [
             AvatarWidget(
-              photoURL: photoURL,
-              userName: userName,
+              photoURL: widget.photoURL,
+              userName: widget.userName,
               radius: 24,
               heroTag: 'home_avatar',
             ),
@@ -51,7 +86,7 @@ class ProfileCardWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    userName,
+                    widget.userName,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.onPrimary,
@@ -59,14 +94,14 @@ class ProfileCardWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    userEmail,
+                    widget.userEmail,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onPrimary.withOpacity(0.8),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    apartment,
+                    widget.apartment,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onPrimary.withOpacity(0.8),
                     ),
@@ -76,9 +111,12 @@ class ProfileCardWidget extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Icon(
-          Icons.expand_more,
-          color: theme.colorScheme.onPrimary,
+        trailing: RotationTransition(
+          turns: _animation,
+          child: Icon(
+            Icons.expand_more,
+            color: theme.colorScheme.onPrimary,
+          ),
         ),
         children: [
           Container(

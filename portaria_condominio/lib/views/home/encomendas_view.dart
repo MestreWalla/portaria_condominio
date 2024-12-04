@@ -245,29 +245,39 @@ class _EncomendasViewState extends State<EncomendasView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        builder: (_, controller) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, controller) => Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).translate('package_history'),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).translate('package_history'),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
               Expanded(
                 child: FutureBuilder<List<Encomenda>>(
                   future: _encomendaController.buscarHistoricoEncomendas(),
@@ -277,10 +287,25 @@ class _EncomendasViewState extends State<EncomendasView> {
                     }
 
                     if (snapshot.hasError) {
+                      String errorMessage = snapshot.error.toString();
+                      if (errorMessage.contains('Exception: ')) {
+                        errorMessage = errorMessage.split('Exception: ')[1];
+                      }
                       return Center(
-                        child: Text(
-                          snapshot.error.toString(),
-                          style: const TextStyle(color: Colors.red),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                errorMessage,
+                                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -288,40 +313,162 @@ class _EncomendasViewState extends State<EncomendasView> {
                     final encomendas = snapshot.data ?? [];
                     if (encomendas.isEmpty) {
                       return Center(
-                        child: Text(
-                          AppLocalizations.of(context).translate('no_packages'),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 64,
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              AppLocalizations.of(context).translate('no_packages'),
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
 
                     return ListView.builder(
-                      controller: controller,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: encomendas.length,
                       itemBuilder: (context, index) {
                         final encomenda = encomendas[index];
+                        final colorScheme = Theme.of(context).colorScheme;
+                        
                         return Card(
-                          child: ListTile(
-                            title: Text(encomenda.descricao),
-                            subtitle: Column(
+                          elevation: 1,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${AppLocalizations.of(context).translate('sender')}: ${encomenda.remetente}'),
-                                Text(
-                                  '${AppLocalizations.of(context).translate('arrival_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: encomenda.retirada
+                                            ? colorScheme.primaryContainer
+                                            : colorScheme.secondaryContainer,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        encomenda.retirada
+                                            ? Icons.check_circle_outline
+                                            : Icons.inventory_2_outlined,
+                                        color: encomenda.retirada
+                                            ? colorScheme.onPrimaryContainer
+                                            : colorScheme.onSecondaryContainer,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            encomenda.descricao,
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            encomenda.moradorNome,
+                                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                if (encomenda.retirada && encomenda.dataRetirada != null)
-                                  Text(
-                                    '${AppLocalizations.of(context).translate('collection_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataRetirada!)}',
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.local_shipping_outlined,
+                                      size: 16,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      encomenda.remetente,
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_outlined,
+                                      size: 16,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${AppLocalizations.of(context).translate('arrival')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (encomenda.retirada && encomenda.dataRetirada != null) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        size: 16,
+                                        color: colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${AppLocalizations.of(context).translate('collected')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataRetirada!)}',
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                if (encomenda.retirada)
-                                  Text(
-                                    '${AppLocalizations.of(context).translate('collected_by')}: ${AppLocalizations.of(context).translate(encomenda.retiradaPor == 'portaria' ? 'collected_by_doorman' : 'collected_by_resident')}',
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.person_outline,
+                                        size: 16,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        AppLocalizations.of(context).translate(
+                                          encomenda.retiradaPor == 'portaria'
+                                              ? 'collected_by_doorman'
+                                              : 'collected_by_resident'
+                                        ),
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ],
                               ],
-                            ),
-                            trailing: Icon(
-                              encomenda.retirada ? Icons.check_circle : Icons.schedule,
-                              color: encomenda.retirada ? Colors.green : Colors.orange,
                             ),
                           ),
                         );
@@ -339,6 +486,8 @@ class _EncomendasViewState extends State<EncomendasView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).translate('packages')),
@@ -349,6 +498,13 @@ class _EncomendasViewState extends State<EncomendasView> {
             tooltip: AppLocalizations.of(context).translate('view_history'),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCadastroEncomendaDialog(context),
+        icon: const Icon(Icons.add),
+        label: Text(AppLocalizations.of(context).translate('register_package')),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
       ),
       body: FutureBuilder<List<Encomenda>>(
         future: _encomendaController.buscarEncomendasPendentes(),
@@ -363,13 +519,20 @@ class _EncomendasViewState extends State<EncomendasView> {
               errorMessage = errorMessage.split('Exception: ')[1];
             }
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      errorMessage,
+                      style: TextStyle(color: colorScheme.error),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -377,9 +540,33 @@ class _EncomendasViewState extends State<EncomendasView> {
           final encomendas = snapshot.data ?? [];
           if (encomendas.isEmpty) {
             return Center(
-              child: Text(
-                AppLocalizations.of(context).translate('no_packages'),
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inventory_2_outlined,
+                    size: 64,
+                    color: colorScheme.primary.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context).translate('no_packages'),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: colorScheme.primary.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => _showCadastroEncomendaDialog(context),
+                    icon: const Icon(Icons.add),
+                    label: Text(AppLocalizations.of(context).translate('register_package')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -389,63 +576,100 @@ class _EncomendasViewState extends State<EncomendasView> {
               setState(() {});
             },
             child: ListView.builder(
+              padding: const EdgeInsets.all(8),
               itemCount: encomendas.length,
               itemBuilder: (context, index) {
                 final encomenda = encomendas[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    title: Text(encomenda.descricao),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${AppLocalizations.of(context).translate('sender')}: ${encomenda.remetente}'),
-                        Text(
-                          '${AppLocalizations.of(context).translate('arrival_date')}: ${DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada)}',
-                        ),
-                        Text('${AppLocalizations.of(context).translate('resident')}: ${encomenda.moradorNome}'),
-                      ],
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _confirmarRetirada(context, encomenda),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.inventory_2_outlined,
+                                  color: colorScheme.onPrimaryContainer,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      encomenda.descricao,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      encomenda.moradorNome,
+                                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.local_shipping_outlined,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                encomenda.remetente,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                DateFormat('dd/MM/yyyy HH:mm').format(encomenda.dataChegada),
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    trailing: FutureBuilder<String>(
-                      future: _encomendaController.getUserRole(),
-                      builder: (context, roleSnapshot) {
-                        if (!roleSnapshot.hasData) return const SizedBox.shrink();
-                        
-                        final role = roleSnapshot.data!;
-                        if (role == 'portaria') {
-                          return ElevatedButton(
-                            onPressed: () => _confirmarRetirada(context, encomenda),
-                            child: Text(
-                              AppLocalizations.of(context).translate('mark_as_collected'),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    onTap: () async {
-                      final role = await _encomendaController.getUserRole();
-                      if (role == 'morador') {
-                        _confirmarRetirada(context, encomenda);
-                      }
-                    },
                   ),
                 );
               },
             ),
           );
-        },
-      ),
-      floatingActionButton: FutureBuilder<String>(
-        future: _encomendaController.getUserRole(),
-        builder: (context, snapshot) {
-          if (snapshot.data == 'portaria') {
-            return FloatingActionButton(
-              onPressed: () => _showCadastroEncomendaDialog(context),
-              child: const Icon(Icons.add),
-            );
-          }
-          return const SizedBox.shrink();
         },
       ),
     );

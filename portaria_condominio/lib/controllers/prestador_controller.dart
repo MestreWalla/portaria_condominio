@@ -163,6 +163,38 @@ class PrestadorController {
     }
   }
 
+  /// **UPDATE** - Atualizar a foto do prestador
+  Future<void> atualizarFotoPrestador(String id, String fotoBase64) async {
+    try {
+      print('Tentando atualizar foto do prestador: $id');
+      print('Tamanho da foto em base64: ${fotoBase64.length} caracteres');
+      
+      await _prestadoresCollection.doc(id).update({
+        'photoURL': fotoBase64,
+      });
+      
+      // Verifica se a foto foi salva corretamente
+      final docSnapshot = await _prestadoresCollection.doc(id).get();
+      final data = docSnapshot.data() as Map<String, dynamic>?;
+      final savedPhotoURL = data?['photoURL'] as String?;
+      
+      if (savedPhotoURL == null) {
+        print('ERRO: Foto não foi salva no banco');
+        throw Exception('Foto não foi salva no banco');
+      } else if (savedPhotoURL.length != fotoBase64.length) {
+        print('ERRO: Foto salva com tamanho diferente');
+        print('Tamanho original: ${fotoBase64.length}');
+        print('Tamanho salvo: ${savedPhotoURL.length}');
+        throw Exception('Foto salva com tamanho diferente');
+      } else {
+        print('Foto salva com sucesso!');
+      }
+    } catch (e) {
+      print('ERRO ao atualizar foto do prestador: $e');
+      throw Exception('Erro ao atualizar foto do prestador: $e');
+    }
+  }
+
   /// **DELETE** - Remover um prestador do Firestore
   Future<void> excluirPrestador(String prestadorId) async {
     try {

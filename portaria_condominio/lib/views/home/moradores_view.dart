@@ -586,7 +586,11 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             Center(
                               child: Stack(
                                 children: [
-                                  _buildLargeAvatar(morador?.photoURL),
+                                  AvatarWidget(
+                                    photoURL: morador?.photoURL,
+                                    userName: morador?.nome ?? '',
+                                    radius: 50,
+                                  ),
                                   Positioned(
                                     right: -10,
                                     bottom: -10,
