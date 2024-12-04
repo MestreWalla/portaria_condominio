@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import 'package:portaria_condominio/widgets/profile_card_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +7,6 @@ import '../../controllers/configuracoes_controller.dart';
 import '../../controllers/notificacoes_controller.dart';
 import '../../localizations/app_localizations.dart';
 import '../../../routes/app_routes.dart';
-import '../settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

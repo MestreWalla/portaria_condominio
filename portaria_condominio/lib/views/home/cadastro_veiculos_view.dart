@@ -4,6 +4,8 @@ import '../../controllers/veiculo_controller.dart';
 import '../../models/veiculo_model.dart';
 
 class CadastroVeiculosView extends StatefulWidget {
+  const CadastroVeiculosView({super.key});
+
   @override
   _CadastroVeiculosViewState createState() => _CadastroVeiculosViewState();
 }
@@ -19,7 +21,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
   final TextEditingController _proprietarioController = TextEditingController();
   List<Map<String, String>> _veiculosCadastrados = [];
   final VeiculoController _veiculoController = VeiculoController();
-  Map<int, AnimationController> _animationControllers = {};
+  final Map<int, AnimationController> _animationControllers = {};
   int? expandedIndex;
   String _tipoProprietario = 'morador'; // Default value
 
