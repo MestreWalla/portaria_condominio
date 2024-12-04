@@ -4,6 +4,8 @@ import '../../controllers/veiculo_controller.dart';
 import '../../models/veiculo_model.dart';
 
 class CadastroVeiculosView extends StatefulWidget {
+  const CadastroVeiculosView({super.key});
+
   @override
   _CadastroVeiculosViewState createState() => _CadastroVeiculosViewState();
 }
@@ -19,7 +21,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
   final TextEditingController _proprietarioController = TextEditingController();
   List<Map<String, String>> _veiculosCadastrados = [];
   final VeiculoController _veiculoController = VeiculoController();
-  Map<int, AnimationController> _animationControllers = {};
+  final Map<int, AnimationController> _animationControllers = {};
   int? expandedIndex;
   String _tipoProprietario = 'morador'; // Default value
 
@@ -74,7 +76,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                     },
                     decoration: InputDecoration(
                       labelText: localizations.translate('Tipo Proprietario'),
-                      icon: Icon(Icons.category),
+                      icon: const Icon(Icons.category),
                     ),
                   ),
                 ],
@@ -193,7 +195,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                     },
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context).translate('owner_type'),
-                      icon: Icon(Icons.category),
+                      icon: const Icon(Icons.category),
                     ),
                   ),
                 ],
@@ -302,7 +304,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _mostrarDialogCadastro,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       body: ListView.builder(
         itemCount: _veiculosCadastrados.length,
@@ -479,7 +481,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
