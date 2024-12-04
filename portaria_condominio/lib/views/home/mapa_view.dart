@@ -235,123 +235,138 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     final configController = context.watch<ConfiguracoesController>();
     final localizations = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.translate('map_title')),
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+              ),
+            ),
+            child: TypeAheadField<String>(
+              builder: (context, controller, focusNode) {
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    hintText: localizations.translate('search_address'),
+                    hintStyle: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              controller.clear();
+                              focusNode.unfocus();
+                            },
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.my_location,
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          onPressed: _getUserLocation,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                );
+              },
+              decorationBuilder: (context, child) {
+                return Material(
+                  elevation: 8,
+                  shadowColor: theme.colorScheme.shadow.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  color: theme.colorScheme.surface,
+                  child: child,
+                );
+              },
+              itemBuilder: (context, suggestion) {
+                final isMoradorSuggestion = suggestion.contains(' - ');
+                final isNameMatch = isMoradorSuggestion && 
+                    _moradores.any((m) => suggestion.toLowerCase().startsWith(m.nome.toLowerCase()));
+
+                return ListTile(
+                  leading: Icon(
+                    isNameMatch ? Icons.person : (isMoradorSuggestion ? Icons.home : Icons.location_on_outlined),
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  title: Text(
+                    suggestion,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 14,
+                      fontWeight: isMoradorSuggestion ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: isMoradorSuggestion
+                      ? Text(
+                          isNameMatch ? 'Morador (nome)' : 'Morador (endereço)',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontSize: 12,
+                          ),
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                );
+              },
+              onSelected: _handleSuggestionSelected,
+              suggestionsCallback: _getSuggestions,
+              animationDuration: const Duration(milliseconds: 300),
+              hideOnEmpty: true,
+              hideOnLoading: false,
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          _buildSearchField(localizations),
           _buildMap(configController),
           _buildMoradorList(localizations, configController),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchField(AppLocalizations localizations) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).shadowColor.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TypeAheadField<String>(
-            builder: (context, controller, focusNode) {
-              return TextField(
-                controller: controller,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  hintText: localizations.translate('search_address'),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_searchController.text.isNotEmpty)
-                        IconButton(
-                          icon: Icon(
-                            Icons.clear,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: () {
-                            controller.clear();
-                            focusNode.unfocus();
-                          },
-                        ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.my_location,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        onPressed: _getUserLocation,
-                      ),
-                    ],
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                ),
-              );
-            },
-            decorationBuilder: (context, child) {
-              return Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                color: Theme.of(context).colorScheme.surface,
-                child: child,
-              );
-            },
-            itemBuilder: (context, suggestion) {
-              final isMoradorSuggestion = suggestion.contains(' - ');
-              final isNameMatch = isMoradorSuggestion && 
-                  _moradores.any((m) => suggestion.toLowerCase().startsWith(m.nome.toLowerCase()));
-
-              return ListTile(
-                leading: Icon(
-                  isNameMatch ? Icons.person : (isMoradorSuggestion ? Icons.home : Icons.location_on_outlined),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(
-                  suggestion,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: isMoradorSuggestion ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                subtitle: isMoradorSuggestion
-                    ? Text(
-                        isNameMatch ? 'Morador (nome)' : 'Morador (endereço)',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
-                    : null,
-              );
-            },
-            onSelected: _handleSuggestionSelected,
-            suggestionsCallback: _getSuggestions,
-            animationDuration: const Duration(milliseconds: 300),
-            hideOnEmpty: true,
-            hideOnLoading: false,
-          ),
-        ),
       ),
     );
   }
@@ -384,13 +399,24 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                   height: 40,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      color: Theme.of(context).colorScheme.primaryContainer,
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       Icons.my_location,
-                      size: 25,
-                      color: Theme.of(context).colorScheme.primary,
+                      size: 22,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -404,15 +430,22 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                   child: Column(
                     children: [
                       Container(
-                        width: 30,
-                        height: 30,
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.secondaryContainer,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: Theme.of(context).colorScheme.secondary,
                             width: 2,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: ClipOval(
                           child: _buildAvatar(
@@ -423,16 +456,32 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                         ),
                       ),
                       Container(
-                        width: 3,
-                        height: 10,
-                        color: Theme.of(context).colorScheme.secondary,
+                        width: 2,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.secondary,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                       ),
                       Container(
-                        width: 6,
-                        height: 6,
+                        width: 8,
+                        height: 8,
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.secondary,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -446,8 +495,10 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
               polylines: [
                 Polyline(
                   points: _routePoints,
-                  color: Theme.of(context).colorScheme.secondary,
-                  strokeWidth: 3,
+                  strokeWidth: 4,
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                  borderColor: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                  borderStrokeWidth: 6,
                 ),
               ],
             ),
@@ -503,13 +554,14 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
         opacity: _fadeAnimation,
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).shadowColor.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
+                color: Theme.of(context).colorScheme.shadow.withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, -4),
+                spreadRadius: 2,
               ),
             ],
           ),
@@ -527,13 +579,15 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                       Text(
                         localizations.translate('no_residents_found'),
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                 )
               : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: _moradores.length,
                   itemBuilder: (context, index) {
                     final morador = _moradores[index];
@@ -557,94 +611,78 @@ class _MapaViewState extends State<MapaView> with SingleTickerProviderStateMixin
                           child: child,
                         );
                       },
-                      child: Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: Hero(
-                            tag: 'avatar_${morador.id}',
-                            child: _buildAvatar(
-                              morador.photoURL,
-                              Theme.of(context).colorScheme,
-                              morador.nome,
-                            ),
-                          ),
-                          title: Text(
-                            morador.nome,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_outlined,
-                                    size: 16,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      '${morador.endereco}, ${morador.numeroCasa}',
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        child: Material(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          elevation: 0,
+                          child: InkWell(
+                            onTap: () => _startRouteToMorador(morador),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Hero(
+                                      tag: 'avatar_${morador.id}',
+                                      child: _buildAvatar(
+                                        morador.photoURL,
+                                        Theme.of(context).colorScheme,
+                                        morador.nome,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.phone_outlined,
-                                    size: 16,
-                                    color: Theme.of(context).colorScheme.secondary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    morador.telefone,
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.secondary,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            morador.nome,
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.location_on_outlined,
+                                                size: 16,
+                                                color: Theme.of(context).colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  '${morador.endereco}, ${morador.numeroCasa}',
+                                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.location_on,
-                                  color: Theme.of(context).colorScheme.primary,
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                    ),
+                                  ],
                                 ),
-                                onPressed: () => _showMoradorLocation(morador.endereco),
-                                tooltip: 'Mostrar no mapa',
                               ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.directions,
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                                onPressed: () => _startRouteToMorador(morador),
-                                tooltip: 'Iniciar rota',
-                              ),
-                            ],
+                            ),
                           ),
-                          onTap: () => _showMoradorLocation(morador.endereco),
                         ),
                       ),
                     );

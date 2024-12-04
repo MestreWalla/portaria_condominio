@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../../controllers/morador_controller.dart';
+import '../../controllers/prestador_controller.dart';
 
 class PhotoRegistrationScreen extends StatefulWidget {
   final String userType;
@@ -25,6 +26,7 @@ class PhotoRegistrationScreen extends StatefulWidget {
 class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
   final ImagePicker _picker = ImagePicker();
   final MoradorController _moradorController = MoradorController();
+  final PrestadorController _prestadorController = PrestadorController();
   File? _imageFile;
   bool _isUploading = false;
   String? _uploadStatus;
@@ -34,7 +36,6 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
     if (_isUploading) return;
 
     try {
-      // Captura a foto com qualidade reduzida
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.front,
@@ -51,10 +52,8 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
         _uploadStatus = 'Processando foto...';
       });
 
-      // Lê o arquivo como bytes e converte para Uint8List
       final Uint8List imageBytes = await _imageFile!.readAsBytes();
       
-      // Comprime a imagem diretamente para Uint8List
       _compressedImageBytes = await FlutterImageCompress.compressWithList(
         imageBytes,
         quality: 50,
@@ -70,13 +69,11 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
       print('Imagem comprimida com sucesso');
       print('Tamanho dos bytes comprimidos: ${_compressedImageBytes!.length}');
 
-      // Converte para base64 (sem prefixo)
       final base64Image = base64Encode(_compressedImageBytes!);
       
       print('Imagem convertida para base64');
       print('Tamanho do base64: ${base64Image.length}');
 
-      // Limpa o arquivo temporário
       await _imageFile!.delete();
 
       if (!mounted) return;
@@ -86,20 +83,21 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
         _uploadStatus = 'Foto processada com sucesso!';
       });
 
-      // Aguarda um pequeno delay antes de fechar a tela
       await Future.delayed(const Duration(milliseconds: 100));
 
       if (!mounted) return;
 
-      // Retorna o resultado apropriado baseado no parâmetro returnPhotoData
       if (widget.returnPhotoData) {
         print('Retornando dados da foto para a tela de cadastro');
         Navigator.of(context).pop(base64Image);
       } else {
         print('Salvando foto diretamente no banco');
-        // Se não precisamos retornar os dados da foto, tentamos salvá-la diretamente
         try {
-          await _moradorController.atualizarFotoMorador(widget.userId, base64Image);
+          if (widget.userType == 'morador') {
+            await _moradorController.atualizarFotoMorador(widget.userId, base64Image);
+          } else if (widget.userType == 'prestador') {
+            await _prestadorController.atualizarFotoPrestador(widget.userId, base64Image);
+          }
           print('Foto salva com sucesso no banco');
           Navigator.of(context).pop(true);
         } catch (e) {

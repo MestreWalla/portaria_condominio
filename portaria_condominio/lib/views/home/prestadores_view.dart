@@ -6,6 +6,7 @@ import '../../models/prestador_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
 import 'package:portaria_condominio/widgets/avatar_widget.dart';
+import '../photo_registration/photo_registration_screen.dart';
 
 class PrestadoresView extends StatefulWidget {
   final String currentUserId;
@@ -436,6 +437,54 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PhotoRegistrationScreen(
+                                userType: 'prestador',
+                                userId: prestador?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                                returnPhotoData: false,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            // Recarregar a lista de prestadores para mostrar a foto atualizada
+                            setState(() {
+                              _futurePrestadores = _controller.buscarTodosPrestadores();
+                            });
+                          }
+                        },
+                        child: Stack(
+                          children: [
+                            AvatarWidget(
+                              photoURL: prestador?.photoURL,
+                              userName: prestador?.nome ?? '',
+                              radius: 50,
+                            ),
+                            Positioned(
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  size: 20,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

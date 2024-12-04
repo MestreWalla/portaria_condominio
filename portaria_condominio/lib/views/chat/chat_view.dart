@@ -33,10 +33,8 @@ class _ChatViewState extends State<ChatView> {
     super.initState();
     final userId = authController.currentUser?.uid;
     if (userId != null) {
-      // Marca as mensagens como lidas assim que o chat é aberto
       _updateMessageStatus(widget.receiverId, userId);
       
-      // Escuta novas mensagens e marca como lida automaticamente
       _messageSubscription = chatController
           .getMessages(userId, widget.receiverId)
           .listen((messages) {
@@ -68,9 +66,64 @@ class _ChatViewState extends State<ChatView> {
     super.dispose();
   }
 
+  String _formatMessageDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final messageDate = DateTime(date.year, date.month, date.day);
+
+    if (messageDate == today) {
+      return 'Hoje';
+    } else if (messageDate == yesterday) {
+      return 'Ontem';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
+  }
+
+  Widget _buildDateDivider(DateTime date) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _formatMessageDate(date),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = authController.currentUser?.uid;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (userId == null) {
       return Scaffold(
@@ -79,17 +132,11 @@ class _ChatViewState extends State<ChatView> {
       );
     }
 
-    _generateChatId(userId, widget.receiverId);
-
     return PopScope(
       canPop: true,
       onPopInvoked: (bool didPop) async {
-        if (didPop) {
-          // Handle the pop if needed
-          return;
-        }
-        final NavigatorState navigator = Navigator.of(context);
-        navigator.pop();
+        if (didPop) return;
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -139,15 +186,26 @@ class _ChatViewState extends State<ChatView> {
                   }
 
                   final messages = snapshot.data!;
+                  String? currentDate;
+                  List<Widget> messageWidgets = [];
 
-                  return ListView.builder(
-                    reverse: true,
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      final isSentByUser = message.senderId == userId;
+                  for (int i = 0; i < messages.length; i++) {
+                    final message = messages[i];
+                    final messageDate = DateTime(
+                      message.timestamp.year,
+                      message.timestamp.month,
+                      message.timestamp.day,
+                    );
+                    final dateStr = messageDate.toString();
 
-                      return Container(
+                    if (currentDate != dateStr) {
+                      currentDate = dateStr;
+                      messageWidgets.add(_buildDateDivider(message.timestamp));
+                    }
+
+                    final isSentByUser = message.senderId == userId;
+                    messageWidgets.add(
+                      Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 4,
                           horizontal: 16,
@@ -162,8 +220,8 @@ class _ChatViewState extends State<ChatView> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: isSentByUser
-                                      ? Colors.blueAccent
-                                      : Colors.grey[300],
+                                      ? colorScheme.primary
+                                      : colorScheme.surfaceVariant,
                                   borderRadius: BorderRadius.only(
                                     topLeft: const Radius.circular(12),
                                     topRight: const Radius.circular(12),
@@ -182,8 +240,8 @@ class _ChatViewState extends State<ChatView> {
                                       message.content,
                                       style: TextStyle(
                                         color: isSentByUser
-                                            ? Colors.white
-                                            : Colors.black87,
+                                            ? colorScheme.onPrimary
+                                            : colorScheme.onSurfaceVariant,
                                         fontSize: 16,
                                       ),
                                     ),
@@ -196,8 +254,8 @@ class _ChatViewState extends State<ChatView> {
                                               .format(message.timestamp),
                                           style: TextStyle(
                                             color: isSentByUser
-                                                ? Colors.white70
-                                                : Colors.black54,
+                                                ? colorScheme.onPrimary.withOpacity(0.7)
+                                                : colorScheme.onSurfaceVariant.withOpacity(0.7),
                                             fontSize: 12,
                                           ),
                                         ),
@@ -211,8 +269,8 @@ class _ChatViewState extends State<ChatView> {
                                                     : Icons.done_all,
                                             size: 16,
                                             color: message.status == MessageStatus.read
-                                                ? Colors.blue[100]
-                                                : Colors.white70,
+                                                ? colorScheme.onPrimary
+                                                : colorScheme.onPrimary.withOpacity(0.7),
                                           ),
                                         ],
                                       ],
@@ -223,8 +281,14 @@ class _ChatViewState extends State<ChatView> {
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    reverse: true,
+                    itemCount: messageWidgets.length,
+                    itemBuilder: (context, index) => messageWidgets[index],
                   );
                 },
               ),
@@ -247,11 +311,5 @@ class _ChatViewState extends State<ChatView> {
         ),
       ),
     );
-  }
-
-  String _generateChatId(String userId, String receiverId) {
-    return userId.hashCode <= receiverId.hashCode
-        ? '${userId}_$receiverId'
-        : '${receiverId}_$userId';
   }
 }

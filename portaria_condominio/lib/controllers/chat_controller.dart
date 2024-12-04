@@ -235,8 +235,22 @@ class ChatController {
             
             if (messagesQuery.docs.isNotEmpty) {
               final participants = List<String>.from(doc.data()['participants'] as List);
-              final otherUserId = participants.firstWhere((id) => id != userId);
-              activeChats.add(otherUserId);
+              try {
+                // If there are exactly 2 participants and they're the same (self-chat)
+                if (participants.length == 2 && participants[0] == participants[1]) {
+                  activeChats.add(userId); // Add self-chat
+                } else {
+                  // Find the other participant
+                  final otherUserId = participants.firstWhere(
+                    (id) => id != userId,
+                    orElse: () => userId,
+                  );
+                  activeChats.add(otherUserId); // Add chat with other user or self
+                }
+              } catch (e) {
+                debugPrint('Error finding participant: $e');
+                continue;
+              }
             }
           }
           return activeChats;

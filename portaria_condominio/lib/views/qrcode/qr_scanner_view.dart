@@ -18,10 +18,18 @@ class _QRScannerViewState extends State<QRScannerView> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     
     return Scaffold(
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        title: Text(localizations.translate('qr_code_reader')),
+        backgroundColor: colorScheme.surface,
+        iconTheme: IconThemeData(color: colorScheme.primary),
+        title: Text(
+          localizations.translate('qr_code_reader'),
+          style: TextStyle(color: colorScheme.primary),
+        ),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
@@ -29,9 +37,15 @@ class _QRScannerViewState extends State<QRScannerView> {
               builder: (context, state, child) {
                 switch (state) {
                   case TorchState.off:
-                    return const Icon(Icons.flash_off);
+                    return Icon(
+                      Icons.flash_off,
+                      color: colorScheme.primary,
+                    );
                   case TorchState.on:
-                    return const Icon(Icons.flash_on);
+                    return Icon(
+                      Icons.flash_on,
+                      color: colorScheme.primary,
+                    );
                 }
               },
             ),
@@ -43,9 +57,15 @@ class _QRScannerViewState extends State<QRScannerView> {
               builder: (context, state, child) {
                 switch (state) {
                   case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
+                    return Icon(
+                      Icons.camera_front,
+                      color: colorScheme.primary,
+                    );
                   case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
+                    return Icon(
+                      Icons.camera_rear,
+                      color: colorScheme.primary,
+                    );
                 }
               },
             ),
@@ -58,12 +78,64 @@ class _QRScannerViewState extends State<QRScannerView> {
           MobileScanner(
             controller: cameraController,
             onDetect: _onDetect,
+            overlay: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: colorScheme.primary,
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.width * 0.8,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.qr_code_scanner,
+                      size: 60,
+                      color: colorScheme.primary.withOpacity(0.7),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      localizations.translate('scan_qr_code_instruction'),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.primary,
+                        shadows: [
+                          Shadow(
+                            offset: const Offset(0, 1),
+                            blurRadius: 3.0,
+                            color: colorScheme.surface.withOpacity(0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           if (_isProcessing)
             Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(),
+              color: colorScheme.surfaceVariant.withOpacity(0.5),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      localizations.translate('processing_qr_code'),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -86,37 +158,75 @@ class _QRScannerViewState extends State<QRScannerView> {
       final visitaController = Provider.of<VisitaController>(context, listen: false);
       final success = await visitaController.processarQRCodeVisita(code);
       final localizations = AppLocalizations.of(context);
+      final theme = Theme.of(context);
 
       if (!mounted) return;
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(localizations.translate('qr_code_success')),
-            backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: theme.colorScheme.onPrimaryContainer),
+                const SizedBox(width: 8),
+                Text(
+                  localizations.translate('qr_code_success'),
+                  style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
+                ),
+              ],
+            ),
+            backgroundColor: theme.colorScheme.primaryContainer,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(localizations.translate('invalid_qr_code')),
-            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                Icon(Icons.error, color: theme.colorScheme.onErrorContainer),
+                const SizedBox(width: 8),
+                Text(
+                  localizations.translate('invalid_qr_code'),
+                  style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                ),
+              ],
+            ),
+            backgroundColor: theme.colorScheme.errorContainer,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      final theme = Theme.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).translate('qr_code_error')),
-          backgroundColor: Colors.red,
+          content: Row(
+            children: [
+              Icon(Icons.error, color: theme.colorScheme.onErrorContainer),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.of(context).translate('qr_code_error'),
+                style: TextStyle(color: theme.colorScheme.onErrorContainer),
+              ),
+            ],
+          ),
+          backgroundColor: theme.colorScheme.errorContainer,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {
