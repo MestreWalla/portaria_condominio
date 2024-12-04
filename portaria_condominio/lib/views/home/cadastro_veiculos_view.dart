@@ -64,7 +64,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                       ),
                       DropdownMenuItem(
                         value: 'prestador',
-                        child: Text(localizations.translate('prestador_de_servico')),
+                        child: Text(localizations.translate('service_provider')),
                       ),
                     ],
                     onChanged: (value) {
@@ -183,7 +183,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                       ),
                       DropdownMenuItem(
                         value: 'prestador',
-                        child: Text(AppLocalizations.of(context).translate('prestador_de_servico')),
+                        child: Text(AppLocalizations.of(context).translate('service_provider')),
                       ),
                     ],
                     onChanged: (value) {
@@ -192,7 +192,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                       });
                     },
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context).translate('Tipo Proprietario'),
+                      labelText: AppLocalizations.of(context).translate('owner_type'),
                       icon: Icon(Icons.category),
                     ),
                   ),
@@ -411,7 +411,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                                             colorScheme,
                                           ),
                                           _buildInfoRow(
-                                            localizations.translate('tipo_proprietario'),
+                                            localizations.translate('owner_type'),
                                             veiculo['tipo_proprietario']!,
                                             colorScheme,
                                           ),
