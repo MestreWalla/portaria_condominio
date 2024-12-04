@@ -26,6 +26,7 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   final chatController = ChatController();
   final authController = AuthController();
+  final ScrollController _scrollController = ScrollController();
   StreamSubscription<List<Message>>? _messageSubscription;
 
   @override
@@ -47,6 +48,13 @@ class _ChatViewState extends State<ChatView> {
         if (unreadMessages.isNotEmpty) {
           _updateMessageStatus(widget.receiverId, userId);
         }
+
+        // Rola para a última mensagem após carregar as mensagens
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          }
+        });
       });
     }
   }
@@ -62,6 +70,7 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _messageSubscription?.cancel();
     super.dispose();
   }
@@ -189,8 +198,11 @@ class _ChatViewState extends State<ChatView> {
                   String? currentDate;
                   List<Widget> messageWidgets = [];
 
-                  for (int i = 0; i < messages.length; i++) {
-                    final message = messages[i];
+                  // Invertendo a ordem das mensagens para processar do mais antigo para o mais recente
+                  final reversedMessages = messages.reversed.toList();
+
+                  for (int i = 0; i < reversedMessages.length; i++) {
+                    final message = reversedMessages[i];
                     final messageDate = DateTime(
                       message.timestamp.year,
                       message.timestamp.month,
@@ -198,6 +210,7 @@ class _ChatViewState extends State<ChatView> {
                     );
                     final dateStr = messageDate.toString();
 
+                    // Adiciona o divisor de data antes das mensagens do dia
                     if (currentDate != dateStr) {
                       currentDate = dateStr;
                       messageWidgets.add(_buildDateDivider(message.timestamp));
@@ -286,7 +299,8 @@ class _ChatViewState extends State<ChatView> {
                   }
 
                   return ListView.builder(
-                    reverse: true,
+                    controller: _scrollController,
+                    reverse: false,
                     itemCount: messageWidgets.length,
                     itemBuilder: (context, index) => messageWidgets[index],
                   );
@@ -305,6 +319,17 @@ class _ChatViewState extends State<ChatView> {
                   status: MessageStatus.sent,
                 );
                 await chatController.sendMessage(message);
+                
+                // Rola para a última mensagem após enviar uma nova
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
               },
             ),
           ],
