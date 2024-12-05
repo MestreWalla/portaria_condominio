@@ -258,7 +258,6 @@ class AppLocalizationsPt {
     'year': 'Ano',
     'owner_type': 'Tipo de Proprietário',
     'owner_name': 'Nome do Proprietário',
-    'visitor': 'Visitante',
     'service_provider': 'Prestador de Serviço',
     'vehicle_saved': 'Veículo cadastrado com sucesso!',
     'error_saving_vehicle': 'Erro ao cadastrar veículo',

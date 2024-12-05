@@ -220,7 +220,6 @@ class AppLocalizationsEn {
     'year': 'Year',
     'owner_type': 'Owner Type',
     'owner_name': 'Owner Name',
-    'visitor': 'Visitor',
     'service_provider': 'Service Provider',
     'vehicle_saved': 'Vehicle saved successfully!',
     'error_saving_vehicle': 'Error saving vehicle',
