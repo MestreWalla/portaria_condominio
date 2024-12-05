@@ -257,6 +257,7 @@ class AppLocalizationsPt {
     'visitor': 'Visitante',
     
     // Vehicle Registration
+    'add_vehicle': 'Adicionar Veículo',
     'register_vehicle': 'Cadastrar Veículo',
     'vehicle_registration': 'Cadastro de Veículo',
     'vehicle_info': 'Informações do Veículo',
