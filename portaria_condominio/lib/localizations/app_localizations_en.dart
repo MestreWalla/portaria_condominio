@@ -219,6 +219,7 @@ class AppLocalizationsEn {
     'view_history': 'View History',
     
     // Vehicle Registration
+    'add_vehicle': 'Add Vehicle',
     'register_vehicle': 'Register Vehicle',
     'vehicle_registration': 'Vehicle Registration',
     'vehicle_info': 'Vehicle Information',

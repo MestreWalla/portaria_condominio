@@ -37,6 +37,28 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
   late Future<List<Prestador>> _futurePrestadores;
   final Map<int, AnimationController> _animationControllers = {};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  
+  // Adicionar variáveis para controle dos filtros
+  bool _sortAlfabetico = false;
+  String _filtroStatus = 'todos'; // 'todos', 'liberados', 'pendentes'
+  
+  List<Prestador> _aplicarFiltros(List<Prestador> prestadores) {
+    List<Prestador> prestadoresFiltrados = List.from(prestadores);
+    
+    // Aplicar filtro por status
+    if (_filtroStatus == 'liberados') {
+      prestadoresFiltrados = prestadoresFiltrados.where((p) => p.liberacaoEntrada).toList();
+    } else if (_filtroStatus == 'pendentes') {
+      prestadoresFiltrados = prestadoresFiltrados.where((p) => !p.liberacaoEntrada).toList();
+    }
+    
+    // Aplicar ordenação alfabética
+    if (_sortAlfabetico) {
+      prestadoresFiltrados.sort((a, b) => a.nome.compareTo(b.nome));
+    }
+    
+    return prestadoresFiltrados;
+  }
 
   @override
   void initState() {
@@ -70,6 +92,43 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('service_providers')),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (String value) {
+              setState(() {
+                if (value == 'alfabetico') {
+                  _sortAlfabetico = !_sortAlfabetico;
+                } else {
+                  _filtroStatus = value;
+                }
+              });
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              CheckedPopupMenuItem<String>(
+                checked: _sortAlfabetico,
+                value: 'alfabetico',
+                child: Text('Ordem Alfabética'),
+              ),
+              const PopupMenuDivider(),
+              CheckedPopupMenuItem<String>(
+                checked: _filtroStatus == 'todos',
+                value: 'todos',
+                child: Text('Todos'),
+              ),
+              CheckedPopupMenuItem<String>(
+                checked: _filtroStatus == 'liberados',
+                value: 'liberados',
+                child: Text('Liberados'),
+              ),
+              CheckedPopupMenuItem<String>(
+                checked: _filtroStatus == 'pendentes',
+                value: 'pendentes',
+                child: Text('Pendentes'),
+              ),
+            ],
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -100,14 +159,16 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
-              child: Text(localizations.translate('no_service_providers_found')),
+              child: Text(localizations.translate('no_service_providers')),
             );
           }
 
+          final prestadoresFiltrados = _aplicarFiltros(snapshot.data!);
+
           return ListView.builder(
-            itemCount: snapshot.data!.length,
+            itemCount: prestadoresFiltrados.length,
             itemBuilder: (context, index) {
-              final prestador = snapshot.data![index];
+              final prestador = prestadoresFiltrados[index];
               final isExpanded = index == expandedIndex;
 
               return AnimatedBuilder(
