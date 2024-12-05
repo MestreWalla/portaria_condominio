@@ -52,12 +52,13 @@ class AppLocalizationsEn {
     'orders': 'Orders',
     'notifications': 'Notifications',
     'map': 'Map',
+    'access_records': 'Access Records',
     
     // Common fields
     'name': 'Name',
     'phone': 'Phone',
     'address': 'Address',
-    'apartment': 'Apartment',
+    'house': 'House',
     'observations': 'Observations',
     
     // Map features
@@ -86,7 +87,7 @@ class AppLocalizationsEn {
     'address_required': 'Please enter an address',
     'email_required': 'Please enter an email',
     'password_required': 'Please enter a password',
-    'apartment_required': 'Please enter an apartment',
+    'house_required': 'Please enter a house',
     'save_changes': 'Save Changes',
     'resident_updated': 'Resident updated successfully!',
     'resident_registered': 'Resident registered successfully!',
@@ -115,7 +116,7 @@ class AppLocalizationsEn {
     'error_updating_visit': 'Error updating visit',
     
     // Visit status
-    'entry_allowed': 'Entry allowed',
+    'entry_allowed': 'Entry allowed successfully',
     'scheduled': 'Scheduled',
     'in_progress': 'In progress',
     'completed': 'Completed',
@@ -126,11 +127,25 @@ class AppLocalizationsEn {
     'no_visits_found': 'No visits found',
     
     // Visit actions
-    'allow_entry': 'Allow entry',
-    'revoke_entry': 'Revoke entry',
+    'allow_entry': 'Allow Entry',
+    'revoke_entry': 'Revoke Entry',
     'entry_revoked': 'Entry revoked',
     'error_allowing_entry': 'Error allowing entry',
     'error_revoking_entry': 'Error revoking entry',
+    
+    // Access Records
+    'search_by_name': 'Search by name',
+    'no_records_found': 'No records found.',
+    'filter_by_date': 'Filter by date',
+    'share_records': 'Share records',
+    'entry_time': 'Entry Time',
+    'exit_time': 'Exit Time',
+    'not_registered': 'Not registered',
+    'finished': 'Finished',
+    'canceled': 'Canceled',
+    'unknown': 'Unknown',
+    'close': 'Close',
+    'share': 'Share',
     
     // General actions
     'logout': 'Logout',
@@ -235,5 +250,10 @@ class AppLocalizationsEn {
     'qr_code_title': 'Access QR Code',
     'house_number': 'House Number',
     'invalid_qr_code': 'Invalid QR Code',
+    
+    // New strings for access control
+    'qr_code': 'QR Code',
+    'end_date': 'End Date',
+    'end_time': 'End Time',
   };
 }

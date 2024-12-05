@@ -8,9 +8,16 @@ class Prestador {
   final String telefone; // Telefone do prestador
   final String email; // Email usado para login no Firebase Authentication
   final String senha; // Senha usada para login no Firebase Authentication
-  final bool liberacaoCadastro; // Indica se a entrada foi liberada
+  final bool? liberacaoCadastro; // Indica se a entrada foi liberada
   final String role;
   final String? photoURL; // Adicionado campo para foto do prestador
+  bool liberacaoEntrada; // Novo campo
+  String status; // Novo campo
+  String startDate; // Novo campo
+  String startTime; // Novo campo
+  String endDate; // Novo campo
+  String endTime; // Novo campo
+  String observacoes; // Novo campo
 
   // Construtor
   Prestador({
@@ -21,14 +28,21 @@ class Prestador {
     required this.telefone,
     required this.email,
     required this.senha,
-    required this.liberacaoCadastro,
+    this.liberacaoCadastro,
     this.role = 'prestador',
-    this.photoURL, // Adicionado ao construtor
+    this.photoURL,
+    this.liberacaoEntrada = false, // Valor padrão
+    this.status = 'agendado', // Valor padrão
+    this.startDate = '',
+    this.startTime = '',
+    this.endDate = '',
+    this.endTime = '',
+    this.observacoes = '',
   });
 
   // Construtor para criar um Prestador a partir de um documento Firestore
-  factory Prestador.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+  factory Prestador.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Prestador(
       id: doc.id,
       nome: data['nome'] ?? '',
@@ -37,9 +51,16 @@ class Prestador {
       telefone: data['telefone'] ?? '',
       email: data['email'] ?? '',
       senha: data['senha'] ?? '',
-      liberacaoCadastro: data['liberacaoCadastro'] ?? false,
+      liberacaoCadastro: data['liberacaoCadastro'],
       role: data['role'] ?? 'prestador',
-      photoURL: data['photoURL'], // Adicionado ao factory
+      photoURL: data['photoURL'],
+      liberacaoEntrada: data['liberacaoEntrada'] ?? false,
+      status: data['status'] ?? 'agendado',
+      startDate: data['startDate'] ?? '',
+      startTime: data['startTime'] ?? '',
+      endDate: data['endDate'] ?? '',
+      endTime: data['endTime'] ?? '',
+      observacoes: data['observacoes'] ?? '',
     );
   }
 
@@ -54,7 +75,54 @@ class Prestador {
       'senha': senha,
       'liberacaoCadastro': liberacaoCadastro,
       'role': role,
-      'photoURL': photoURL, // Adicionado ao toJson
+      'photoURL': photoURL,
+      'liberacaoEntrada': liberacaoEntrada,
+      'status': status,
+      'startDate': startDate,
+      'startTime': startTime,
+      'endDate': endDate,
+      'endTime': endTime,
+      'observacoes': observacoes,
     };
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'nome': nome,
+      'cpf': cpf,
+      'empresa': empresa,
+      'telefone': telefone,
+      'email': email,
+      'photoURL': photoURL,
+      'liberacaoEntrada': liberacaoEntrada,
+      'status': status,
+      'startDate': startDate,
+      'startTime': startTime,
+      'endDate': endDate,
+      'endTime': endTime,
+      'observacoes': observacoes,
+    };
+  }
+
+  factory Prestador.fromMap(Map<String, dynamic> map) {
+    return Prestador(
+      id: map['id'] ?? '',
+      nome: map['nome'] ?? '',
+      cpf: map['cpf'] ?? '',
+      empresa: map['empresa'] ?? '',
+      telefone: map['telefone'] ?? '',
+      email: map['email'] ?? '',
+      photoURL: map['photoURL'],
+      liberacaoEntrada: map['liberacaoEntrada'] ?? false,
+      status: map['status'] ?? 'agendado',
+      startDate: map['startDate'] ?? '',
+      startTime: map['startTime'] ?? '',
+      endDate: map['endDate'] ?? '',
+      endTime: map['endTime'] ?? '',
+      observacoes: map['observacoes'] ?? '',
+      senha: '',
+      liberacaoCadastro: null,
+    );
   }
 }

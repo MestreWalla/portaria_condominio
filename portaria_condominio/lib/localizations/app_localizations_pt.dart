@@ -65,14 +65,32 @@ class AppLocalizationsPt {
     'orders': 'Encomendas',
     'notifications': 'Notificações',
     'map': 'Mapa',
+    'access_records': 'Registros de Acesso',
+    
+    // Access Records
+    'search_by_name': 'Buscar por nome',
+    'no_records_found': 'Nenhum registro encontrado.',
+    'filter_by_date': 'Filtrar por data',
+    'share_records': 'Compartilhar registros',
+    'visit_details': 'Detalhes da Visita',
+    'entry_time': 'Horário de Entrada',
+    'exit_time': 'Horário de Saída',
+    'not_registered': 'Não registrada',
+    'scheduled': 'Agendado',
+    'in_progress': 'Em Andamento',
+    'finished': 'Finalizado',
+    'canceled': 'Cancelado',
+    'unknown': 'Desconhecido',
+    'close': 'Fechar',
+    'share': 'Compartilhar',
     
     // Common fields
     'name': 'Nome',
     'cpf': 'CPF',
     'phone': 'Telefone',
     'address': 'Endereço',
-    'apartment': 'Apartamento',
-    'apartment_required': 'Apartamento é obrigatório',
+    'apartment': 'Casa',
+    'apartment_required': 'Casa é obrigatória',
     'observations': 'Observações',
     'title': 'Título',
     'description': 'Descrição',
@@ -135,13 +153,10 @@ class AppLocalizationsPt {
     'visit_added': 'Visita adicionada com sucesso',
     'error_adding_visit': 'Erro ao adicionar visita',
     'error_updating_visit': 'Erro ao atualizar visita',
-    'visit_details': 'Detalhes da Visita',
     'no_visits_found': 'Nenhuma visita encontrada',
     
     // Visit status
     'entry_allowed': 'Entrada liberada',
-    'scheduled': 'Agendada',
-    'in_progress': 'Em andamento',
     'completed': 'Concluída',
     'cancelled': 'Cancelada',
     'realized': 'Realizada',
@@ -271,5 +286,8 @@ class AppLocalizationsPt {
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',
     'profile': 'Perfil',
+    
+    // Novas strings para controle de acesso
+    'qr_code': 'QR Code',
   };
 }

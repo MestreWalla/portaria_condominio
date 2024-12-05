@@ -488,7 +488,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
       builder: (BuildContext context, SearchController controller) {
         return SearchBar(
           controller: controller,
-          padding: const MaterialStatePropertyAll<EdgeInsets>(
+          padding: const WidgetStatePropertyAll<EdgeInsets>(
             EdgeInsets.symmetric(horizontal: 16.0),
           ),
           onTap: () {
@@ -604,7 +604,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
         title: Text(localizations.translate('vehicle_registration')),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
                 context: context,
@@ -616,7 +616,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _mostrarDialogCadastro,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(localizations.translate('add_vehicle')),
       ),
       body: _veiculosCadastrados.isEmpty
@@ -763,7 +763,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                                 child: isExpanded
                                     ? Container(
                                         decoration: BoxDecoration(
-                                          color: colorScheme.surfaceVariant.withOpacity(0.3),
+                                          color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                                           borderRadius: const BorderRadius.only(
                                             bottomLeft: Radius.circular(12),
                                             bottomRight: Radius.circular(12),
@@ -799,7 +799,7 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                                                     mainAxisAlignment: MainAxisAlignment.end,
                                                     children: [
                                                       TextButton.icon(
-                                                        icon: Icon(Icons.edit_outlined),
+                                                        icon: const Icon(Icons.edit_outlined),
                                                         label: Text(localizations.translate('edit')),
                                                         onPressed: () => _editVeiculo(veiculo),
                                                       ),

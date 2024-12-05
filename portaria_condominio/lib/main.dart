@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'controllers/configuracoes_controller.dart';
+import 'controllers/visita_controller.dart';
 import 'localizations/app_localizations.dart';
 import 'routes/app_routes.dart';
 import 'core/theme/theme_provider.dart';
@@ -46,9 +47,10 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ConfiguracoesController(prefs)),
+        ChangeNotifierProvider(create: (_) => VisitaController()),
       ],
-      child: Consumer2<ThemeProvider, ConfiguracoesController>(
-        builder: (context, themeProvider, configController, child) {
+      child: Consumer3<ThemeProvider, ConfiguracoesController, VisitaController>(
+        builder: (context, themeProvider, configController, visitaController, child) {
           return MaterialApp(
             navigatorKey: notificationService.navigatorKey,
             title: 'Gestão de Condomínio',

@@ -1,3 +1,13 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../models/prestador_model.dart';
+import '../../widgets/avatar_widget.dart';
+import '../photo_registration/photo_registration_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -7,6 +17,7 @@ import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
 import 'package:portaria_condominio/widgets/avatar_widget.dart';
 import '../photo_registration/photo_registration_screen.dart';
+import '../qr_code/qr_code_view.dart';
 
 class PrestadoresView extends StatefulWidget {
   final String currentUserId;
@@ -289,6 +300,93 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
           alignment: WrapAlignment.spaceEvenly,
           spacing: 8.0,
           runSpacing: 8.0,
+          children: [
+            if (!prestador.liberacaoEntrada)
+              _buildActionButton(
+                icon: Icons.check_circle,
+                label: localizations.translate('allow_entry'),
+                onPressed: () async {
+                  try {
+                    await _controller.liberarEntrada(prestador.id);
+                    setState(() {
+                      _futurePrestadores = _controller.buscarTodosPrestadores();
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('entry_allowed')),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('error_allowing_entry')),
+                          backgroundColor: colorScheme.error,
+                        ),
+                      );
+                    }
+                  }
+                },
+                colorScheme: colorScheme,
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildActionButton(
+                    icon: Icons.cancel,
+                    label: localizations.translate('revoke_entry'),
+                    onPressed: () async {
+                      try {
+                        await _controller.revogarEntrada(prestador.id);
+                        setState(() {
+                          _futurePrestadores = _controller.buscarTodosPrestadores();
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(localizations.translate('entry_revoked')),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(localizations.translate('error_revoking_entry')),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildActionButton(
+                    icon: Icons.qr_code,
+                    label: localizations.translate('qr_code'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QrCodeView(prestador: prestador),
+                        ),
+                      );
+                    },
+                    colorScheme: colorScheme,
+                  ),
+                ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
               icon: Icons.phone,

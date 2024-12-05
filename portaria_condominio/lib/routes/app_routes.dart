@@ -15,7 +15,8 @@ import '../views/login/login_view.dart';
 import '../views/settings/settings_view.dart';
 import '../views/qrcode/qr_scanner_view.dart';
 import '../views/home/profile_view.dart';
-import '../views/home/cadastro_veiculos_view.dart'; // Add this line
+import '../views/home/cadastro_veiculos_view.dart';
+import '../views/home/access_records_view.dart'; // Add this line
 
 class AppRoutes {
   static const String login = '/login';
@@ -34,7 +35,8 @@ class AppRoutes {
   static const String chatList = '/chatList';
   static const String qrScanner = '/qr-scanner';
   static const String profile = '/profile';
-  static const String cadastroVeiculos = '/cadastroVeiculos'; // Add this line
+  static const String cadastroVeiculos = '/cadastroVeiculos';
+  static const String accessRecords = '/accessRecords'; // Add this line
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     final name = settings.name;
@@ -61,7 +63,8 @@ class AppRoutes {
       chatList: (_) => const ChatListView(),
       qrScanner: (_) => const QRScannerView(),
       profile: (_) => const ProfileView(),
-      cadastroVeiculos: (_) => CadastroVeiculosView(), // Add this line
+      cadastroVeiculos: (_) => const CadastroVeiculosView(),
+      accessRecords: (_) => const AccessRecordsView(), // Add this line
     };
 
     final builder = routes[name];

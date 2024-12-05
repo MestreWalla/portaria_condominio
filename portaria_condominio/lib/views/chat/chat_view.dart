@@ -105,7 +105,7 @@ class _ChatViewState extends State<ChatView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -234,7 +234,7 @@ class _ChatViewState extends State<ChatView> {
                                 decoration: BoxDecoration(
                                   color: isSentByUser
                                       ? colorScheme.primary
-                                      : colorScheme.surfaceVariant,
+                                      : colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.only(
                                     topLeft: const Radius.circular(12),
                                     topRight: const Radius.circular(12),

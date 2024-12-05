@@ -103,12 +103,9 @@ class PrestadorController {
   /// **READ** - Buscar um prestador pelo ID
   Future<Prestador?> buscarPrestadorPorId(String id) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> doc = await _prestadoresCollection
-          .doc(id)
-          .get() as DocumentSnapshot<Map<String, dynamic>>;
-
+      final doc = await _prestadoresCollection.doc(id).get();
       if (doc.exists) {
-        return Prestador.fromDocument(doc);
+        return Prestador.fromFirestore(doc);
       }
       return null;
     } catch (e) {
@@ -120,12 +117,9 @@ class PrestadorController {
   /// **READ** - Buscar um prestador por critérios
   Future<Prestador?> buscarPrestador(String id) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> doc = await _prestadoresCollection
-          .doc(id)
-          .get() as DocumentSnapshot<Map<String, dynamic>>;
-
+      final doc = await _prestadoresCollection.doc(id).get();
       if (doc.exists) {
-        return Prestador.fromDocument(doc);
+        return Prestador.fromFirestore(doc);
       }
       return null;
     } catch (e) {
@@ -136,12 +130,57 @@ class PrestadorController {
   /// **READ** - Buscar todos os prestadores do Firestore
   Future<List<Prestador>> buscarTodosPrestadores() async {
     try {
-      final QuerySnapshot querySnapshot = await _prestadoresCollection.get();
+      final querySnapshot = await _prestadoresCollection.get();
       return querySnapshot.docs
-          .map((doc) => Prestador.fromDocument(doc as DocumentSnapshot<Map<String, dynamic>>))
+          .map((doc) => Prestador.fromFirestore(doc))
           .toList();
     } catch (e) {
       throw Exception('Erro ao buscar prestadores: $e');
+    }
+  }
+
+  Future<List<Prestador>> buscarPrestadoresPorNome(String nome) async {
+    try {
+      final querySnapshot = await _prestadoresCollection
+          .where('nome', isGreaterThanOrEqualTo: nome)
+          .where('nome', isLessThanOrEqualTo: nome + '\uf8ff')
+          .get();
+      return querySnapshot.docs
+          .map((doc) => Prestador.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print('Erro ao buscar prestadores por nome: $e');
+      return [];
+    }
+  }
+
+  Future<Prestador?> buscarPrestadorPorEmail(String email) async {
+    try {
+      final querySnapshot = await _prestadoresCollection
+          .where('email', isEqualTo: email)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return Prestador.fromFirestore(querySnapshot.docs.first);
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao buscar prestador por email: $e');
+      return null;
+    }
+  }
+
+  Future<Prestador?> buscarPrestadorPorCpf(String cpf) async {
+    try {
+      final querySnapshot = await _prestadoresCollection
+          .where('cpf', isEqualTo: cpf)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return Prestador.fromFirestore(querySnapshot.docs.first);
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao buscar prestador por CPF: $e');
+      return null;
     }
   }
 
@@ -202,5 +241,82 @@ class PrestadorController {
     } catch (e) {
       throw Exception('Erro ao excluir prestador: $e');
     }
+  }
+
+  // Liberar entrada do prestador
+  Future<void> liberarEntrada(String prestadorId) async {
+    try {
+      final prestadorRef = _prestadoresCollection.doc(prestadorId);
+      await prestadorRef.update({
+        'liberacaoEntrada': true,
+        'status': 'em_andamento',
+      });
+    } catch (e) {
+      throw Exception('Erro ao liberar entrada: $e');
+    }
+  }
+
+  // Revogar entrada do prestador
+  Future<void> revogarEntrada(String prestadorId) async {
+    try {
+      final prestadorRef = _prestadoresCollection.doc(prestadorId);
+      await prestadorRef.update({
+        'liberacaoEntrada': false,
+        'status': 'agendado',
+      });
+    } catch (e) {
+      throw Exception('Erro ao revogar entrada: $e');
+    }
+  }
+
+  // Finalizar visita do prestador
+  Future<void> finalizarVisita(String prestadorId) async {
+    try {
+      final prestadorRef = _prestadoresCollection.doc(prestadorId);
+      await prestadorRef.update({
+        'liberacaoEntrada': false,
+        'status': 'finalizado',
+      });
+    } catch (e) {
+      throw Exception('Erro ao finalizar visita: $e');
+    }
+  }
+
+  // Processar QR Code do prestador
+  Future<bool> processarQRCodePrestador(String prestadorId) async {
+    try {
+      final prestadorDoc = await _prestadoresCollection.doc(prestadorId).get();
+      
+      if (!prestadorDoc.exists) {
+        return false;
+      }
+
+      final prestador = Prestador.fromFirestore(prestadorDoc);
+      
+      // Verifica se a visita está agendada para hoje
+      final hoje = DateTime.now();
+      final dataVisita = _parseDate(prestador.startDate);
+      
+      if (dataVisita.year == hoje.year && 
+          dataVisita.month == hoje.month && 
+          dataVisita.day == hoje.day) {
+        await liberarEntrada(prestadorId);
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      print('Erro ao processar QR Code: $e');
+      return false;
+    }
+  }
+
+  DateTime _parseDate(String date) {
+    final parts = date.split('/');
+    return DateTime(
+      int.parse(parts[2]), // ano
+      int.parse(parts[1]), // mês
+      int.parse(parts[0]), // dia
+    );
   }
 }

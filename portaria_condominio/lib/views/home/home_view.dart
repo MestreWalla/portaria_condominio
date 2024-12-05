@@ -249,6 +249,13 @@ class HomeView extends StatelessWidget {
                       '/cadastroVeiculos',
                       configController,
                     ),
+                    _menuItem(
+                      context,
+                      localizations.translate('access_records'),
+                      Icons.history,
+                      AppRoutes.accessRecords,
+                      configController,
+                    ),
                   ],
                 );
               },

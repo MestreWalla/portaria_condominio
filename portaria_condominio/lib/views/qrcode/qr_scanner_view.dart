@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../controllers/visita_controller.dart';
 import 'package:provider/provider.dart';
 import '../../localizations/app_localizations.dart';
+import 'dart:convert';
 
 class QRScannerView extends StatefulWidget {
   const QRScannerView({super.key});
@@ -22,7 +23,7 @@ class _QRScannerViewState extends State<QRScannerView> {
     final colorScheme = theme.colorScheme;
     
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         iconTheme: IconThemeData(color: colorScheme.primary),
@@ -119,7 +120,7 @@ class _QRScannerViewState extends State<QRScannerView> {
           ),
           if (_isProcessing)
             Container(
-              color: colorScheme.surfaceVariant.withOpacity(0.5),
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -155,8 +156,20 @@ class _QRScannerViewState extends State<QRScannerView> {
     setState(() => _isProcessing = true);
 
     try {
+      // Log para verificar o conteúdo do código
+      print('QR Code lido: $code');
+
+      // Decodifica o código base64 do QR para JSON
+      final decodedJson = json.decode(utf8.decode(base64Decode(code)));
+      print('JSON decodificado: $decodedJson');
+
+      final visitaId = decodedJson['id'];
+      if (visitaId == null) {
+        throw Exception('ID da visita não encontrado no QR Code');
+      }
+
       final visitaController = Provider.of<VisitaController>(context, listen: false);
-      final success = await visitaController.processarQRCodeVisita(code);
+      final success = await visitaController.processarQRCodeVisita(visitaId);
       final localizations = AppLocalizations.of(context);
       final theme = Theme.of(context);
 
@@ -207,6 +220,7 @@ class _QRScannerViewState extends State<QRScannerView> {
         );
       }
     } catch (e) {
+      print('Erro ao processar QR Code: $e');
       if (!mounted) return;
       final theme = Theme.of(context);
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/visita_model.dart';
+import 'package:flutter/foundation.dart'; // Import this line
 
-class VisitaController {
+class VisitaController extends ChangeNotifier { // Modified this line
   final CollectionReference _visitasCollection =
       FirebaseFirestore.instance.collection('visitas');
 
