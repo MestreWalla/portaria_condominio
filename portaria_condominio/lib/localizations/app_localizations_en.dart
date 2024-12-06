@@ -245,6 +245,12 @@ class AppLocalizationsEn {
     'error_deleting_vehicle': 'Error deleting vehicle',
     'confirm_delete_vehicle': 'Do you really want to delete this vehicle?',
     
+    // Provider Filters
+    'filter_all': 'All',
+    'filter_allowed': 'Allowed',
+    'filter_pending': 'Pending',
+    'select_date': 'Select Date',
+    
     // QR Code
     'generate_qr_code': 'Generate QR Code',
     'view_qr_code': 'View QR Code',

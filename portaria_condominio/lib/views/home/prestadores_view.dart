@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/prestador_model.dart';
 import '../../widgets/avatar_widget.dart';
 import '../photo_registration/photo_registration_screen.dart';
-
 import '../../controllers/prestador_controller.dart';
 import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
@@ -32,7 +31,11 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
   final Map<String, AnimationController> _animationControllers = {};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final Map<String, bool> _loadingStates = {};
-
+  
+  // Filtros
+  String _filtroAtual = 'todos';
+  DateTime? _dataSelecionada;
+  
   @override
   void initState() {
     super.initState();
@@ -42,10 +45,114 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
   Future<void> _loadPrestadores() async {
     try {
       final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = prestadores;
+      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
     } catch (e) {
       // Tratar erro se necessário
     }
+  }
+
+  List<Prestador> _aplicarFiltros(List<Prestador> prestadores) {
+    return prestadores.where((prestador) {
+      // Filtro por data
+      if (_dataSelecionada != null) {
+        final dataRegistro = DateTime.parse(prestador.dataRegistro);
+        if (!_mesmosDia(dataRegistro, _dataSelecionada!)) {
+          return false;
+        }
+      }
+
+      // Filtros de status
+      switch (_filtroAtual) {
+        case 'liberados':
+          return prestador.liberacaoEntrada;
+        case 'pendentes':
+          return !prestador.liberacaoEntrada;
+        default: // 'todos'
+          return true;
+      }
+    }).toList();
+  }
+
+  bool _mesmosDia(DateTime data1, DateTime data2) {
+    return data1.year == data2.year && 
+           data1.month == data2.month && 
+           data1.day == data2.day;
+  }
+
+  Future<void> _selecionarData(BuildContext context) async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate: _dataSelecionada ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (data != null) {
+      setState(() {
+        _dataSelecionada = data;
+      });
+      _loadPrestadores();
+    }
+  }
+
+  Widget _buildFiltros(AppLocalizations localizations) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  FilterChip(
+                    label: Text(localizations.translate('filter_all')),
+                    selected: _filtroAtual == 'todos',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filtroAtual = 'todos';
+                        _dataSelecionada = null;
+                      });
+                      _loadPrestadores();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: Text(localizations.translate('filter_allowed')),
+                    selected: _filtroAtual == 'liberados',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filtroAtual = 'liberados';
+                        _dataSelecionada = null;
+                      });
+                      _loadPrestadores();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: Text(localizations.translate('filter_pending')),
+                    selected: _filtroAtual == 'pendentes',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filtroAtual = 'pendentes';
+                        _dataSelecionada = null;
+                      });
+                      _loadPrestadores();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: Text(localizations.translate('filter_by_date')),
+                    selected: _dataSelecionada != null,
+                    onSelected: (selected) => _selecionarData(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleLiberacaoEntrada(Prestador prestador, AppLocalizations localizations, ColorScheme colorScheme) async {
@@ -61,7 +168,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
         );
       }
       final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = prestadores;
+      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +196,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
         );
       }
       final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = prestadores;
+      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -302,24 +409,31 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
         elevation: 2,
         highlightElevation: 4,
       ),
-      body: ValueListenableBuilder<List<Prestador>>(
-        valueListenable: _prestadoresNotifier,
-        builder: (context, prestadores, child) {
-          if (prestadores.isEmpty) {
-            return Center(
-              child: Text(localizations.translate('no_service_providers_found')),
-            );
-          }
+      body: Column(
+        children: [
+          _buildFiltros(localizations),
+          Expanded(
+            child: ValueListenableBuilder<List<Prestador>>(
+              valueListenable: _prestadoresNotifier,
+              builder: (context, prestadores, child) {
+                if (prestadores.isEmpty) {
+                  return Center(
+                    child: Text(localizations.translate('no_service_providers_found')),
+                  );
+                }
 
-          return ListView.builder(
-            itemCount: prestadores.length,
-            itemBuilder: (context, index) {
-              final prestador = prestadores[index];
+                return ListView.builder(
+                  itemCount: prestadores.length,
+                  itemBuilder: (context, index) {
+                    final prestador = prestadores[index];
 
-              return _buildCard(prestador, localizations, colorScheme);
-            },
-          );
-        },
+                    return _buildCard(prestador, localizations, colorScheme);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

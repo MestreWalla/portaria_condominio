@@ -18,6 +18,7 @@ class Prestador {
   String endDate; // Novo campo
   String endTime; // Novo campo
   String observacoes; // Novo campo
+  final String dataRegistro; // Novo campo
 
   // Construtor
   Prestador({
@@ -38,7 +39,8 @@ class Prestador {
     this.endDate = '',
     this.endTime = '',
     this.observacoes = '',
-  });
+    String? dataRegistro,
+  }) : this.dataRegistro = dataRegistro ?? DateTime.now().toIso8601String();
 
   // Construtor para criar um Prestador a partir de um documento Firestore
   factory Prestador.fromFirestore(DocumentSnapshot doc) {
@@ -61,6 +63,7 @@ class Prestador {
       endDate: data['endDate'] ?? '',
       endTime: data['endTime'] ?? '',
       observacoes: data['observacoes'] ?? '',
+      dataRegistro: data['dataRegistro'],
     );
   }
 
@@ -83,6 +86,7 @@ class Prestador {
       'endDate': endDate,
       'endTime': endTime,
       'observacoes': observacoes,
+      'dataRegistro': dataRegistro,
     };
   }
 
@@ -102,6 +106,7 @@ class Prestador {
       'endDate': endDate,
       'endTime': endTime,
       'observacoes': observacoes,
+      'dataRegistro': dataRegistro,
     };
   }
 
@@ -123,6 +128,7 @@ class Prestador {
       observacoes: map['observacoes'] ?? '',
       senha: '',
       liberacaoCadastro: null,
+      dataRegistro: map['dataRegistro'],
     );
   }
 }

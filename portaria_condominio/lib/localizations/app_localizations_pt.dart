@@ -283,6 +283,12 @@ class AppLocalizationsPt {
     'error_deleting_vehicle': 'Erro ao excluir veículo',
     'confirm_delete_vehicle': 'Deseja realmente excluir este veículo?',
     
+    // Filtros de Prestadores
+    'filter_all': 'Todos',
+    'filter_allowed': 'Liberados',
+    'filter_pending': 'Pendentes',
+    'select_date': 'Selecionar Data',
+    
     // Others
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',
