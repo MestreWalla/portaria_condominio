@@ -105,7 +105,7 @@ class _AccessRecordsViewState extends State<AccessRecordsView> {
                   }
                   final matchesQuery = visita.nome.toLowerCase().contains(_searchQuery);
                   final matchesDate = _selectedDateRange == null ||
-                      (_selectedDateRange!.start.isBefore(visitaStartDate!) &&
+                      (_selectedDateRange!.start.isBefore(visitaStartDate) &&
                       _selectedDateRange!.end.isAfter(visitaStartDate));
                   return matchesQuery && matchesDate;
                 }).toList();

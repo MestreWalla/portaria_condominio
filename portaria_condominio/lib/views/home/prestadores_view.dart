@@ -180,7 +180,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
   }
 
   Future<void> _confirmarExclusao(Prestador prestador) async {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     final confirmed = await showDialog<bool>(
@@ -231,7 +231,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(

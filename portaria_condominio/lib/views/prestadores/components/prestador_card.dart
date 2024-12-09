@@ -24,7 +24,7 @@ class PrestadorCard extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -135,7 +135,7 @@ class PrestadorCard extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(16),

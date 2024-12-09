@@ -25,8 +25,7 @@ class PrestadorActionButtons extends StatelessWidget {
   });
 
   Widget _buildActionButton(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    AppLocalizations.of(context);
 
     if (!prestador.liberacaoEntrada) {
       return _buildAllowEntryButton(context);
@@ -36,7 +35,7 @@ class PrestadorActionButtons extends StatelessWidget {
   }
 
   Widget _buildAllowEntryButton(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     
     return SizedBox(
       height: 40,
@@ -66,7 +65,7 @@ class PrestadorActionButtons extends StatelessWidget {
   }
 
   Widget _buildRevokeEntryButton(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     
     return SizedBox(
       height: 40,
@@ -121,7 +120,7 @@ class PrestadorActionButtons extends StatelessWidget {
   }
 
   Widget _buildCommunicationButtons(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
@@ -165,7 +164,7 @@ class PrestadorActionButtons extends StatelessWidget {
   }
 
   Widget _buildManagementButtons(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(

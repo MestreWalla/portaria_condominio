@@ -53,7 +53,7 @@ class _PrestadorFormDialogState extends State<PrestadorFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Dialog(
