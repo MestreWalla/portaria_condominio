@@ -283,12 +283,6 @@ class AppLocalizationsPt {
     'error_deleting_vehicle': 'Erro ao excluir veículo',
     'confirm_delete_vehicle': 'Deseja realmente excluir este veículo?',
     
-    // Filtros de Prestadores
-    'filter_all': 'Todos',
-    'filter_allowed': 'Liberados',
-    'filter_pending': 'Pendentes',
-    'select_date': 'Selecionar Data',
-    
     // Others
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',
@@ -296,22 +290,5 @@ class AppLocalizationsPt {
     
     // Novas strings para controle de acesso
     'qr_code': 'QR Code',
-    
-    // Tutorial de prestadores
-    'how_to_use': 'Como usar',
-    'providers_management': 'Gerenciamento de Prestadores',
-    'add_provider_tutorial': 'Adicione um novo prestador de serviço ao condomínio',
-    'allow_entry_tutorial': 'Libere a entrada do prestador no condomínio',
-    'revoke_entry_tutorial': 'Revogue o acesso do prestador ao condomínio',
-    'qr_code_tutorial': 'Gere um QR Code para o prestador usar na entrada',
-    'communication': 'Comunicação',
-    'call_tutorial': 'Faça uma ligação direta para o prestador',
-    'message_tutorial': 'Envie mensagens pelo chat interno do app',
-    'whatsapp_tutorial': 'Inicie uma conversa pelo WhatsApp',
-    'management': 'Gerenciamento',
-    'edit_tutorial': 'Edite as informações do prestador',
-    'delete_tutorial': 'Remova o prestador do sistema',
-    'scroll_hint': 'Arraste os cartões horizontalmente para ver todas as ações disponíveis',
-    'understood': 'Entendi',
   };
 }

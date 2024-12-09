@@ -40,7 +40,7 @@ class Prestador {
     this.endTime = '',
     this.observacoes = '',
     String? dataRegistro,
-  }) : this.dataRegistro = dataRegistro ?? DateTime.now().toIso8601String();
+  }) : dataRegistro = dataRegistro ?? DateTime.now().toIso8601String();
 
   // Construtor para criar um Prestador a partir de um documento Firestore
   factory Prestador.fromFirestore(DocumentSnapshot doc) {

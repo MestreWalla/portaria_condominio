@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../controllers/visita_controller.dart';
 import '../../localizations/app_localizations.dart';
 import '../../models/visita_model.dart';
@@ -47,7 +47,7 @@ class _AccessRecordsViewState extends State<AccessRecordsView> {
             child: SearchBar(
               hintText: AppLocalizations.of(context).translate('search_by_name'),
               leading: const Icon(Icons.search),
-              padding: const MaterialStatePropertyAll<EdgeInsets>(
+              padding: const WidgetStatePropertyAll<EdgeInsets>(
                 EdgeInsets.symmetric(horizontal: 16.0),
               ),
               onChanged: (value) {
@@ -105,7 +105,7 @@ class _AccessRecordsViewState extends State<AccessRecordsView> {
                   }
                   final matchesQuery = visita.nome.toLowerCase().contains(_searchQuery);
                   final matchesDate = _selectedDateRange == null ||
-                      (_selectedDateRange!.start.isBefore(visitaStartDate!) &&
+                      (_selectedDateRange!.start.isBefore(visitaStartDate) &&
                       _selectedDateRange!.end.isAfter(visitaStartDate));
                   return matchesQuery && matchesDate;
                 }).toList();
@@ -178,7 +178,7 @@ class _AccessRecordsViewState extends State<AccessRecordsView> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Erro ao carregar data'),
+          title: const Text('Erro ao carregar data'),
           content: Text('Formato de data inválido para ${visita.startDate}'),
           actions: [
             TextButton(
@@ -384,7 +384,7 @@ ${visita.observacoes.isNotEmpty ? '\n${AppLocalizations.of(context).translate('o
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

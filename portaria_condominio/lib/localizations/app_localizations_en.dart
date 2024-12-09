@@ -219,7 +219,6 @@ class AppLocalizationsEn {
     'view_history': 'View History',
     
     // Vehicle Registration
-    'add_vehicle': 'Add Vehicle',
     'register_vehicle': 'Register Vehicle',
     'vehicle_registration': 'Vehicle Registration',
     'vehicle_info': 'Vehicle Information',
@@ -244,12 +243,6 @@ class AppLocalizationsEn {
     'vehicle_deleted': 'Vehicle deleted successfully!',
     'error_deleting_vehicle': 'Error deleting vehicle',
     'confirm_delete_vehicle': 'Do you really want to delete this vehicle?',
-    
-    // Provider Filters
-    'filter_all': 'All',
-    'filter_allowed': 'Allowed',
-    'filter_pending': 'Pending',
-    'select_date': 'Select Date',
     
     // QR Code
     'generate_qr_code': 'Generate QR Code',

@@ -95,10 +95,6 @@ class AppLocalizationsZh {
     'resident_updated': '住户信息已成功更新！',
     'resident_registered': '住户已成功注册！',
     
-    // Vehicle Registration
-    'add_vehicle': '添加车辆',
-    'register_vehicle': '登记车辆',
-    
     // General actions
     'logout': '退出登录',
     'delete_confirmation': '输入"删除"以确认',

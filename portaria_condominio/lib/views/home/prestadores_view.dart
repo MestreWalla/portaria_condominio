@@ -7,9 +7,16 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/prestador_model.dart';
 import '../../widgets/avatar_widget.dart';
 import '../photo_registration/photo_registration_screen.dart';
+
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/prestador_controller.dart';
+import '../../models/prestador_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
+import 'package:portaria_condominio/widgets/avatar_widget.dart';
+import '../photo_registration/photo_registration_screen.dart';
 import '../qr_code/qr_code_view.dart';
 
 class PrestadoresView extends StatefulWidget {
@@ -26,189 +33,37 @@ class PrestadoresView extends StatefulWidget {
 
 class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderStateMixin {
   final PrestadorController _controller = PrestadorController();
-  String? expandedIndex;
-  final ValueNotifier<List<Prestador>> _prestadoresNotifier = ValueNotifier<List<Prestador>>([]);
-  final Map<String, AnimationController> _animationControllers = {};
+  int? expandedIndex;
+  late Future<List<Prestador>> _futurePrestadores;
+  final Map<int, AnimationController> _animationControllers = {};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final Map<String, bool> _loadingStates = {};
   
-  // Filtros
-  String _filtroAtual = 'todos';
-  DateTime? _dataSelecionada;
-  
+  // Variáveis para controle dos filtros
+  bool _ordenarAlfabetico = false;
+  String _filtroLiberacao = 'todos'; // 'todos', 'liberados', 'pendentes'
+
+  List<Prestador> _aplicarFiltros(List<Prestador> prestadores) {
+    List<Prestador> prestadoresFiltrados = List.from(prestadores);
+    
+    // Aplicar filtro por status de liberação
+    if (_filtroLiberacao == 'liberados') {
+      prestadoresFiltrados = prestadoresFiltrados.where((p) => p.liberacaoEntrada).toList();
+    } else if (_filtroLiberacao == 'pendentes') {
+      prestadoresFiltrados = prestadoresFiltrados.where((p) => !p.liberacaoEntrada).toList();
+    }
+    
+    // Aplicar ordenação alfabética
+    if (_ordenarAlfabetico) {
+      prestadoresFiltrados.sort((a, b) => a.nome.compareTo(b.nome));
+    }
+    
+    return prestadoresFiltrados;
+  }
+
   @override
   void initState() {
     super.initState();
-    _loadPrestadores();
-  }
-
-  Future<void> _loadPrestadores() async {
-    try {
-      final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
-    } catch (e) {
-      // Tratar erro se necessário
-    }
-  }
-
-  List<Prestador> _aplicarFiltros(List<Prestador> prestadores) {
-    return prestadores.where((prestador) {
-      // Filtro por data
-      if (_dataSelecionada != null) {
-        final dataRegistro = DateTime.parse(prestador.dataRegistro);
-        if (!_mesmosDia(dataRegistro, _dataSelecionada!)) {
-          return false;
-        }
-      }
-
-      // Filtros de status
-      switch (_filtroAtual) {
-        case 'liberados':
-          return prestador.liberacaoEntrada;
-        case 'pendentes':
-          return !prestador.liberacaoEntrada;
-        default: // 'todos'
-          return true;
-      }
-    }).toList();
-  }
-
-  bool _mesmosDia(DateTime data1, DateTime data2) {
-    return data1.year == data2.year && 
-           data1.month == data2.month && 
-           data1.day == data2.day;
-  }
-
-  Future<void> _selecionarData(BuildContext context) async {
-    final data = await showDatePicker(
-      context: context,
-      initialDate: _dataSelecionada ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-
-    if (data != null) {
-      setState(() {
-        _dataSelecionada = data;
-      });
-      _loadPrestadores();
-    }
-  }
-
-  Widget _buildFiltros(AppLocalizations localizations) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  FilterChip(
-                    label: Text(localizations.translate('filter_all')),
-                    selected: _filtroAtual == 'todos',
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtroAtual = 'todos';
-                        _dataSelecionada = null;
-                      });
-                      _loadPrestadores();
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(localizations.translate('filter_allowed')),
-                    selected: _filtroAtual == 'liberados',
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtroAtual = 'liberados';
-                        _dataSelecionada = null;
-                      });
-                      _loadPrestadores();
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(localizations.translate('filter_pending')),
-                    selected: _filtroAtual == 'pendentes',
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtroAtual = 'pendentes';
-                        _dataSelecionada = null;
-                      });
-                      _loadPrestadores();
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text(localizations.translate('filter_by_date')),
-                    selected: _dataSelecionada != null,
-                    onSelected: (selected) => _selecionarData(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleLiberacaoEntrada(Prestador prestador, AppLocalizations localizations, ColorScheme colorScheme) async {
-    _loadingStates[prestador.id] = true;
-    try {
-      await _controller.liberarEntrada(prestador.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.translate('entry_allowed')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-      final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.translate('error_allowing_entry')),
-            backgroundColor: colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      _loadingStates[prestador.id] = false;
-    }
-  }
-
-  Future<void> _handleRevogacaoEntrada(Prestador prestador, AppLocalizations localizations, ColorScheme colorScheme) async {
-    _loadingStates[prestador.id] = true;
-    try {
-      await _controller.revogarEntrada(prestador.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.translate('entry_revoked')),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-      final prestadores = await _controller.buscarTodosPrestadores();
-      _prestadoresNotifier.value = _aplicarFiltros(prestadores);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(localizations.translate('error_revoking_entry')),
-            backgroundColor: colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      _loadingStates[prestador.id] = false;
-    }
+    _futurePrestadores = _controller.buscarTodosPrestadores();
   }
 
   @override
@@ -216,185 +71,59 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
-    _animationControllers.clear();
-    _prestadoresNotifier.dispose();
     super.dispose();
   }
 
-  AnimationController _getAnimationController(String prestadorId) {
-    return _animationControllers.putIfAbsent(
-      prestadorId,
-      () => AnimationController(
+  AnimationController _getAnimationController(int index) {
+    if (!_animationControllers.containsKey(index)) {
+      _animationControllers[index] = AnimationController(
         duration: const Duration(milliseconds: 300),
         vsync: this,
-      ),
-    );
+      );
+    }
+    return _animationControllers[index]!;
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('service_providers')),
         actions: [
-          IconButton(
-            onPressed: () => _mostrarDialogCadastro(null),
-            icon: const Icon(Icons.add),
-            tooltip: localizations.translate('add_provider'),
-          ),
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Row(
-                    children: [
-                      Icon(
-                        Icons.help_outline,
-                        color: colorScheme.primary,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        localizations.translate('how_to_use'),
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                  content: Container(
-                    width: double.maxFinite,
-                    constraints: const BoxConstraints(maxHeight: 500),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.translate('providers_management'),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTutorialItem(
-                            Icons.add,
-                            localizations.translate('add_provider_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            Icons.check_circle,
-                            localizations.translate('allow_entry_tutorial'),
-                            Colors.green,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            Icons.cancel,
-                            localizations.translate('revoke_entry_tutorial'),
-                            Colors.orange,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            Icons.qr_code,
-                            localizations.translate('qr_code_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          Text(
-                            localizations.translate('communication'),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTutorialItem(
-                            Icons.phone,
-                            localizations.translate('call_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            Icons.message,
-                            localizations.translate('message_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            FontAwesomeIcons.whatsapp,
-                            localizations.translate('whatsapp_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          Text(
-                            localizations.translate('management'),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTutorialItem(
-                            Icons.edit,
-                            localizations.translate('edit_tutorial'),
-                            colorScheme.primary,
-                          ),
-                          _buildTutorialDivider(),
-                          _buildTutorialItem(
-                            Icons.delete,
-                            localizations.translate('delete_tutorial'),
-                            Colors.red,
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: colorScheme.primary,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    localizations.translate('scroll_hint'),
-                                    style: TextStyle(
-                                      color: colorScheme.primary,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: Text(localizations.translate('understood')),
-                    ),
-                  ],
-                ),
-              );
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.filter_list),
+            onSelected: (String value) {
+              setState(() {
+                if (value == 'alfabetico') {
+                  _ordenarAlfabetico = !_ordenarAlfabetico;
+                } else {
+                  _filtroLiberacao = value;
+                }
+              });
             },
-            icon: const Icon(Icons.help_outline),
-            tooltip: localizations.translate('help'),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              CheckedPopupMenuItem<String>(
+                checked: _ordenarAlfabetico,
+                value: 'alfabetico',
+                child: const Text('Ordem Alfabética'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'todos',
+                child: Text('Todos os Prestadores'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'liberados',
+                child: Text('Prestadores Liberados'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'pendentes',
+                child: Text('Prestadores Pendentes'),
+              ),
+            ],
           ),
         ],
       ),
@@ -409,227 +138,216 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
         elevation: 2,
         highlightElevation: 4,
       ),
-      body: Column(
-        children: [
-          _buildFiltros(localizations),
-          Expanded(
-            child: ValueListenableBuilder<List<Prestador>>(
-              valueListenable: _prestadoresNotifier,
-              builder: (context, prestadores, child) {
-                if (prestadores.isEmpty) {
-                  return Center(
-                    child: Text(localizations.translate('no_service_providers_found')),
-                  );
-                }
+      body: FutureBuilder<List<Prestador>>(
+        future: _futurePrestadores,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                return ListView.builder(
-                  itemCount: prestadores.length,
-                  itemBuilder: (context, index) {
-                    final prestador = prestadores[index];
-
-                    return _buildCard(prestador, localizations, colorScheme);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTutorialItem(IconData icon, String text, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+          if (snapshot.hasError) {
+            return Center(
               child: Text(
-                text,
-                style: const TextStyle(fontSize: 14),
+                '${localizations.translate('error')}: ${snapshot.error}',
+                style: TextStyle(color: colorScheme.error),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            );
+          }
 
-  Widget _buildTutorialDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Divider(
-        color: Colors.grey.withOpacity(0.2),
-      ),
-    );
-  }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text(localizations.translate('no_service_providers')),
+            );
+          }
 
-  Widget _buildCard(Prestador prestador, AppLocalizations localizations, ColorScheme colorScheme) {
-    final isExpanded = expandedIndex == prestador.id;
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  expandedIndex = isExpanded ? null : prestador.id;
-                });
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Stack(
-                      alignment: Alignment.bottomRight,
+          final prestadoresFiltrados = _aplicarFiltros(snapshot.data!);
+          
+          if (prestadoresFiltrados.isEmpty) {
+            return const Center(
+              child: Text('Nenhum prestador encontrado com os filtros selecionados'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: prestadoresFiltrados.length,
+            itemBuilder: (context, index) {
+              final prestador = prestadoresFiltrados[index];
+              final isExpanded = index == expandedIndex;
+
+              return AnimatedBuilder(
+                animation: _getAnimationController(index),
+                builder: (context, child) {
+                  final controller = _getAnimationController(index);
+                  final expansionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: controller,
+                      curve: Curves.easeInOut,
+                    ),
+                  );
+
+                  if (isExpanded) {
+                    controller.forward();
+                  } else {
+                    controller.reverse();
+                  }
+
+                  return Card(
+                    margin: const EdgeInsets.all(8.0),
+                    elevation: 8,
+                    child: Column(
                       children: [
-                        Hero(
-                          tag: 'avatar_${prestador.id}',
-                          child: AvatarWidget(
-                            photoURL: prestador.photoURL,
-                            userName: prestador.nome,
-                            radius: 24,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: prestador.liberacaoEntrada ? Colors.green : Colors.orange,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.surface,
-                              width: 2,
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                expandedIndex = isExpanded ? null : index;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Hero(
+                                    tag: 'avatar_${prestador.id}',
+                                    child: AvatarWidget(
+                                      photoURL: prestador.photoURL,
+                                      userName: prestador.nome,
+                                      radius: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          prestador.nome,
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.business,
+                                              size: 16,
+                                              color: colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                prestador.empresa,
+                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                  color: colorScheme.primary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.phone,
+                                              size: 16,
+                                              color: colorScheme.onSurfaceVariant,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              prestador.telefone,
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  RotationTransition(
+                                    turns: Tween(begin: 0.0, end: 0.5)
+                                        .animate(expansionAnimation),
+                                    child: Icon(
+                                      Icons.expand_more,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          child: Icon(
-                            prestador.liberacaoEntrada ? Icons.check : Icons.timer,
-                            size: 12,
-                            color: Colors.white,
+                        ),
+                        ClipRect(
+                          child: AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: SizeTransition(
+                              sizeFactor: expansionAnimation,
+                              child: isExpanded
+                                  ? Column(
+                                      children: [
+                                        const Divider(),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              _buildInfoRow(
+                                                localizations.translate('cpf'),
+                                                prestador.cpf,
+                                                colorScheme,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              _buildInfoRow(
+                                                localizations.translate('email'),
+                                                prestador.email,
+                                                colorScheme,
+                                              ),
+                                              const SizedBox(height: 16),
+                                              _buildActionButtons(
+                                                prestador,
+                                                localizations,
+                                                colorScheme,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            prestador.nome,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            prestador.empresa,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                prestador.liberacaoEntrada ? Icons.check_circle : Icons.access_time,
-                                size: 16,
-                                color: prestador.liberacaoEntrada ? Colors.green : Colors.orange,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                prestador.liberacaoEntrada 
-                                  ? localizations.translate('entry_allowed')
-                                  : localizations.translate('scheduled'),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: prestador.liberacaoEntrada ? Colors.green : Colors.orange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    RotatedBox(
-                      quarterTurns: isExpanded ? 1 : 3,
-                      child: Icon(
-                        Icons.chevron_left,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (isExpanded) ...[
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow(Icons.phone, prestador.telefone, localizations.translate('phone'), colorScheme),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.email, prestador.email, localizations.translate('email'), colorScheme),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.badge, prestador.cpf, localizations.translate('cpf'), colorScheme),
-                  const SizedBox(height: 16),
-                  _buildActionButtons(prestador, localizations, colorScheme),
-                ],
-              ),
-            ),
-          ],
-        ],
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text, String label, ColorScheme colorScheme) {
+  Widget _buildInfoRow(String label, String value, ColorScheme colorScheme) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: colorScheme.primary),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        Text(
+          '$label: ',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.primary,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
         ),
       ],
     );
@@ -640,102 +358,110 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
     AppLocalizations localizations,
     ColorScheme colorScheme,
   ) {
-    final isLoading = _loadingStates[prestador.id] ?? false;
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+    return Column(
+      children: [
+        Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          spacing: 8.0,
+          runSpacing: 8.0,
           children: [
             if (!prestador.liberacaoEntrada)
-              Container(
-                height: 40,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onPressed: isLoading ? null : () => _handleLiberacaoEntrada(prestador, localizations, colorScheme),
-                    icon: isLoading 
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.check_circle),
-                    label: Text(localizations.translate('allow_entry')),
-                  ),
-                ),
+              _buildActionButton(
+                icon: Icons.check_circle,
+                label: localizations.translate('allow_entry'),
+                onPressed: () async {
+                  try {
+                    await _controller.liberarEntrada(prestador.id);
+                    setState(() {
+                      _futurePrestadores = _controller.buscarTodosPrestadores();
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('entry_allowed')),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('error_allowing_entry')),
+                          backgroundColor: colorScheme.error,
+                        ),
+                      );
+                    }
+                  }
+                },
+                colorScheme: colorScheme,
               )
             else
-              Container(
-                height: 40,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onPressed: isLoading ? null : () => _handleRevogacaoEntrada(prestador, localizations, colorScheme),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isLoading)
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildActionButton(
+                    icon: Icons.cancel,
+                    label: localizations.translate('revoke_entry'),
+                    onPressed: () async {
+                      try {
+                        await _controller.revogarEntrada(prestador.id);
+                        setState(() {
+                          _futurePrestadores = _controller.buscarTodosPrestadores();
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(localizations.translate('entry_revoked')),
+                              backgroundColor: Colors.orange,
                             ),
-                          )
-                        else
-                          const Icon(Icons.cancel),
-                        const SizedBox(width: 8),
-                        Text(localizations.translate('revoke_entry')),
-                        const SizedBox(width: 8),
-                        Container(
-                          height: 24,
-                          width: 1,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                        const SizedBox(width: 8),
-                        InkWell(
-                          onTap: isLoading ? null : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => QrCodeView(prestador: prestador),
-                              ),
-                            );
-                          },
-                          child: const Icon(Icons.qr_code),
-                        ),
-                      ],
-                    ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(localizations.translate('error_revoking_entry')),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    colorScheme: colorScheme,
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  _buildActionButton(
+                    icon: Icons.qr_code,
+                    label: localizations.translate('qr_code'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QrCodeView(prestador: prestador),
+                        ),
+                      );
+                    },
+                    colorScheme: colorScheme,
+                  ),
+                ],
               ),
-            const SizedBox(width: 16),
-            IconButton(
-              onPressed: isLoading ? null : () => _makePhoneCall(prestador.telefone),
-              icon: const Icon(Icons.phone),
-              color: colorScheme.primary,
-              tooltip: localizations.translate('call'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionButton(
+              icon: Icons.phone,
+              label: localizations.translate('call'),
+              onPressed: () => _makePhoneCall(prestador.telefone),
+              colorScheme: colorScheme,
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: isLoading ? null : () => Navigator.push(
+            _buildActionButton(
+              icon: Icons.message,
+              label: localizations.translate('message'),
+              onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ChatView(
@@ -744,30 +470,73 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                   ),
                 ),
               ),
-              icon: const Icon(Icons.message),
-              color: colorScheme.primary,
-              tooltip: localizations.translate('message'),
+              colorScheme: colorScheme,
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: isLoading ? null : () => _openWhatsApp(prestador.telefone),
-              icon: const Icon(FontAwesomeIcons.whatsapp),
-              color: colorScheme.primary,
-              tooltip: localizations.translate('whatsapp'),
+            _buildActionButton(
+              icon: FontAwesomeIcons.whatsapp,
+              label: localizations.translate('whatsapp'),
+              onPressed: () => _openWhatsApp(prestador.telefone),
+              colorScheme: colorScheme,
             ),
-            const SizedBox(width: 16),
-            IconButton(
-              onPressed: isLoading ? null : () => _mostrarDialogCadastro(prestador),
-              icon: const Icon(Icons.edit),
-              color: colorScheme.primary,
-              tooltip: localizations.translate('edit'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionButton(
+              icon: Icons.edit,
+              label: localizations.translate('edit'),
+              onPressed: () => _mostrarDialogCadastro(prestador),
+              colorScheme: colorScheme,
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: isLoading ? null : () => _confirmarExclusao(prestador),
-              icon: const Icon(Icons.delete),
-              color: colorScheme.error,
-              tooltip: localizations.translate('delete'),
+            _buildActionButton(
+              icon: Icons.delete,
+              label: localizations.translate('delete'),
+              onPressed: () => _confirmarExclusao(prestador),
+              colorScheme: colorScheme,
+              isDestructive: true,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required ColorScheme colorScheme,
+    bool isDestructive = false,
+  }) {
+    return SizedBox(
+      width: 85,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isDestructive ? colorScheme.error : colorScheme.primary,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDestructive ? colorScheme.error : colorScheme.primary,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -809,7 +578,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
     showDialog(
       context: context,
       builder: (context) {
-        final localizations = AppLocalizations.of(context)!;
+        final localizations = AppLocalizations.of(context);
         final colorScheme = Theme.of(context).colorScheme;
 
         return Dialog(
@@ -848,7 +617,9 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                           );
                           if (result == true) {
                             // Recarregar a lista de prestadores para mostrar a foto atualizada
-                            _loadPrestadores();
+                            setState(() {
+                              _futurePrestadores = _controller.buscarTodosPrestadores();
+                            });
                           }
                         },
                         child: Stack(
@@ -1002,7 +773,9 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                                 }
                                 if (mounted) {
                                   Navigator.of(context).pop();
-                                  _loadPrestadores();
+                                  setState(() {
+                                    _futurePrestadores = _controller.buscarTodosPrestadores();
+                                  });
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
@@ -1053,28 +826,30 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('confirm_deletion')),
+        title: Text(AppLocalizations.of(context).translate('confirm_deletion')),
         content: Text(
-          AppLocalizations.of(context)!
+          AppLocalizations.of(context)
               .translate('confirm_service_provider_deletion')
               .replaceAll('{name}', prestador.nome),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.translate('cancel')),
+            child: Text(AppLocalizations.of(context).translate('cancel')),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               try {
                 await _controller.excluirPrestador(prestador.id);
-                _loadPrestadores();
+                setState(() {
+                  _futurePrestadores = _controller.buscarTodosPrestadores();
+                });
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        AppLocalizations.of(context)!
+                        AppLocalizations.of(context)
                             .translate('service_provider_deleted_successfully'),
                       ),
                     ),
@@ -1085,7 +860,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '${AppLocalizations.of(context)!.translate('error_deleting_service_provider')}: $e',
+                        '${AppLocalizations.of(context).translate('error_deleting_service_provider')}: $e',
                       ),
                       backgroundColor: Theme.of(context).colorScheme.error,
                     ),
@@ -1094,7 +869,7 @@ class _PrestadoresViewState extends State<PrestadoresView> with TickerProviderSt
               }
             },
             child: Text(
-              AppLocalizations.of(context)!.translate('delete'),
+              AppLocalizations.of(context).translate('delete'),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

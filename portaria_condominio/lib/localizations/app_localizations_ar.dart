@@ -126,10 +126,6 @@ class AppLocalizationsAr {
     'package_history': 'سجل الطرود',
     'view_history': 'عرض السجل',
     
-    // Vehicle Registration
-    'add_vehicle': 'إضافة مركبة',
-    'register_vehicle': 'تسجيل مركبة',
-    
     // General actions
     'logout': 'تسجيل الخروج',
     'delete_confirmation': 'اكتب "حذف" للتأكيد',
