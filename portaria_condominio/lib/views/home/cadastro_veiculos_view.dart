@@ -27,7 +27,6 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
   final Map<int, AnimationController> _animationControllers = {};
   int? expandedIndex;
   String _tipoProprietario = 'morador';
-  String? _selectedProprietarioId;
 
   void _mostrarDialogCadastro() {
     showDialog(
@@ -501,7 +500,6 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                 icon: const Icon(Icons.clear),
                 onPressed: () {
                   setState(() {
-                    _selectedProprietarioId = null;
                     _proprietarioController.text = '';
                     _cpfController.text = '';
                     _tipoProprietario = '';
@@ -539,7 +537,6 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
                   subtitle: Text(proprietario['cpf']),
                   onTap: () {
                     setState(() {
-                      _selectedProprietarioId = proprietario['id'];
                       _proprietarioController.text = proprietario['nome'];
                       _cpfController.text = proprietario['cpf'];
                       _tipoProprietario = proprietario['tipo'];
@@ -561,7 +558,6 @@ class _CadastroVeiculosViewState extends State<CadastroVeiculosView> with Ticker
               title: Text('👥 ${controller.text} (${AppLocalizations.of(context).translate('visitor')})'),
               onTap: () {
                 setState(() {
-                  _selectedProprietarioId = null;
                   _proprietarioController.text = controller.text;
                   _cpfController.text = '';
                   _tipoProprietario = 'visitante';

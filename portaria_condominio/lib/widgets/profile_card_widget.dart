@@ -24,7 +24,6 @@ class ProfileCardWidget extends StatefulWidget {
 class _ProfileCardWidgetState extends State<ProfileCardWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -64,7 +63,6 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget> with SingleTicker
         tilePadding: const EdgeInsets.all(16.0),
         onExpansionChanged: (expanded) {
           setState(() {
-            _isExpanded = expanded;
           });
           if (expanded) {
             _controller.forward();
