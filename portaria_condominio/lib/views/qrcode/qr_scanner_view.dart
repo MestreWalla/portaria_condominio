@@ -185,7 +185,7 @@ class _QRScannerViewState extends State<QRScannerView> {
             visitorName: decodedJson['nome'] ?? '',
             visitorType: 'visitante',
             scannedBy: currentUser.uid,
-            scannedByName: currentUser.displayName ?? 'Usuário',
+            scannedByName: currentUser.displayName ?? currentUser.email ?? 'Usuário',
             dataHora: DateTime.now(),
             apartamento: decodedJson['casa'] ?? '',
           );

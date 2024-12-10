@@ -290,5 +290,22 @@ class AppLocalizationsPt {
     
     // Novas strings para controle de acesso
     'qr_code': 'QR Code',
+    'scanned_by': 'Escaneado por',
+    
+    // Novas strings para ajuda dos prestadores
+    'how_to_use': 'Como usar',
+    'providers_management': 'Gerenciamento de prestadores',
+    'add_provider_tutorial': 'Adicionar novo prestador',
+    'allow_entry_tutorial': 'Liberar entrada do prestador',
+    'revoke_entry_tutorial': 'Revogar entrada do prestador',
+    'qr_code_tutorial': 'Abrir QR Code',
+    'communication': 'Comunicação',
+    'call_tutorial': 'Chamada com prestador',
+    'message_tutorial': 'Enviar mensagem para prestador',
+    'whatsapp_tutorial': 'Abrir WhatsApp com prestador',
+    'management': 'Gestão',
+    'edit_tutorial': 'Tutorial de edição',
+    'delete_tutorial': 'Tutorial de exclusão',
+    'scroll_hint': 'Dica: role para ver mais',
   };
 }

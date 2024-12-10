@@ -126,6 +126,21 @@ class AppLocalizationsAr {
     'package_history': 'سجل الطرود',
     'view_history': 'عرض السجل',
     
+    // Access Records
+    'access_records': 'سجلات الوصول',
+    'search_by_name': 'البحث بالاسم',
+    'no_records_found': 'لم يتم العثور على سجلات.',
+    'filter_by_date': 'تصفية حسب التاريخ',
+    'share_records': 'مشاركة السجلات',
+    'entry_time': 'وقت الدخول',
+    'exit_time': 'وقت الخروج',
+    'not_registered': 'غير مسجل',
+    'finished': 'منتهي',
+    'canceled': 'ملغى',
+    'unknown': 'غير معروف',
+    'close': 'إغلاق',
+    'share': 'مشاركة',
+    
     // General actions
     'logout': 'تسجيل الخروج',
     'delete_confirmation': 'اكتب "حذف" للتأكيد',
