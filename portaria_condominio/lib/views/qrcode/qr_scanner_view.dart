@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../controllers/registro_acesso_controller.dart';
 import '../../controllers/visita_controller.dart';
 import 'package:provider/provider.dart';
 import '../../localizations/app_localizations.dart';
 import 'dart:convert';
+import '../../models/registro_acesso_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class QRScannerView extends StatefulWidget {
   const QRScannerView({super.key});
@@ -156,10 +159,6 @@ class _QRScannerViewState extends State<QRScannerView> {
     setState(() => _isProcessing = true);
 
     try {
-      // Log para verificar o conteúdo do código
-      print('QR Code lido: $code');
-
-      // Decodifica o código base64 do QR para JSON
       final decodedJson = json.decode(utf8.decode(base64Decode(code)));
       print('JSON decodificado: $decodedJson');
 
@@ -176,6 +175,23 @@ class _QRScannerViewState extends State<QRScannerView> {
       if (!mounted) return;
 
       if (success) {
+        // Adicionar registro de acesso
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          final registroController = RegistroAcessoController();
+          final registro = RegistroAcesso(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            visitorId: visitaId,
+            visitorName: decodedJson['nome'] ?? '',
+            visitorType: 'visitante',
+            scannedBy: currentUser.uid,
+            scannedByName: currentUser.displayName ?? 'Usuário',
+            dataHora: DateTime.now(),
+            apartamento: decodedJson['casa'] ?? '',
+          );
+          await registroController.adicionarRegistro(registro);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

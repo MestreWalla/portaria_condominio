@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:portaria_condominio/views/home/encomendas_view.dart';
+import '../views/access_records/access_records_view.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/chat_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
@@ -16,7 +17,7 @@ import '../views/settings/settings_view.dart';
 import '../views/qrcode/qr_scanner_view.dart';
 import '../views/home/profile_view.dart';
 import '../views/home/cadastro_veiculos_view.dart';
-import '../views/home/access_records_view.dart'; // Add this line
+// import '../views/home/access_records_view.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -64,7 +65,7 @@ class AppRoutes {
       qrScanner: (_) => const QRScannerView(),
       profile: (_) => const ProfileView(),
       cadastroVeiculos: (_) => const CadastroVeiculosView(),
-      accessRecords: (_) => const AccessRecordsView(), // Add this line
+      accessRecords: (_) => const AccessRecordsView(),
     };
 
     final builder = routes[name];
